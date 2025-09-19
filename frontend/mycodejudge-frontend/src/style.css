@@ -1,0 +1,23 @@
+#editorParent {
+  position: relative;
+  width: 500px;
+  height: 500px;
+}
+
+#editor {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  max-width: 500px;
+  height: 100%;
+  max-height: 500px;
+}
+
+#main-window {
+  display: none;
+}
+
+#login {
+  display: none;
+}
