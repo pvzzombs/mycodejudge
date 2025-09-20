@@ -26,6 +26,14 @@
         </div>
       </div>
     </div>
+    <h2>Title:</h2>
+    <div id="mtitle">
+
+    </div>
+    <h2>Description:</h2>
+    <div id="mdesc">
+
+    </div>
     <br>
     <div class="dropdown">
       <button class="btn btn-secondary dropdown-toggle" type="button" id="chooseLang" data-bs-toggle="dropdown"
@@ -38,6 +46,8 @@
       </ul>
     </div>
     <input type="button" value="Submit and run" id="run">
+    <input type="button" value="Check" id="solve">
+    <input type="button" value="Back" name="" id="mback">
   </div>
   <div id="login">
     <form id="login-form">
@@ -45,6 +55,19 @@
       <input type="password" name="" id="password">
       <input type="submit" value="Log In">
     </form>
+  </div>
+  <div id="problem-creator">
+    <textarea name="" id="ptitle" placeholder="Title here"></textarea>
+    <textarea name="" id="pdesc" placeholder="Description here"></textarea>
+    <textarea name="" id="ptestcases" placeholder="Test cases here"></textarea>
+    <textarea name="" id="panswers" placeholder="Answer here"></textarea>
+    <input type="button" value="Submit" id="problemSubmit">
+    <input type="button" name="" id="gotoList" value="Go to Problems list">
+  </div>
+  <div id="probList">
+    <div id="longlist">
+
+    </div>
   </div>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
     integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
