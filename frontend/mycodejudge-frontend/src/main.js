@@ -114,9 +114,9 @@
   }
 
   document.getElementById("solve").onclick = function(e) {
-    var index = parseInt(JSON.parse(localStorage.getItem("currentProblem")));
-    console.log(index);
-    var item = JSON.parse(localStorage.getItem("problems"))[index];
+    // var index = parseInt(JSON.parse(localStorage.getItem("currentProblem")));
+    // console.log(index);
+    var item = JSON.parse(localStorage.getItem("currentProblem"));
     console.log(item);
     axios.post("http://localhost:8000/post", {
       post: editor.getValue(),
@@ -139,11 +139,78 @@
     });
   }
 
-  document.getElementById("problem-creator").style.display = "block";
+  // Entry point
+  if (localStorage.getItem("sessionid") != null) {
+    document.getElementById("probList").style.display = "block";
+    refreshProblemList();
+    var btn = document.createElement("input");
+    btn.type = "button";
+    btn.value = "Logout";
+    btn.onclick = function() {
+      document.getElementById("probList").style.display = "none";
+      document.getElementById("login").style.display = "block";
+      localStorage.removeItem("username");
+      localStorage.removeItem("sessionid");
+      window.location.reload();
+    }
+    document.body.appendChild(btn);
+  } else {
+    document.getElementById("login").style.display = "block";
+  }
 
   document.getElementById("login-form").onsubmit = function(e) {
     e.preventDefault();
+    var username = document.getElementById("username").value;
+    var password = document.getElementById("password").value;
+    if (username == "" || password == "") {
+      alert("Blank");
+      return;
+    }
+    axios.post("http://localhost:8000/login", {
+      username,
+      password
+    }).then(function(r) {
+      if(r.data.status == "success") {
+        localStorage.setItem("username", username);
+        localStorage.setItem("sessionid", r.data.sessionid);
+        window.location.reload();
+      } else {
+        alert("login failed...");
+      }
+      console.log(r);
+    });
   };
+
+  document.getElementById("register-form").onsubmit = function(e) {
+    e.preventDefault();
+    var username = document.getElementById("r-username").value;
+    var password = document.getElementById("r-password").value;
+    if (username == "" || password == "") {
+      alert("Blank");
+      return;
+    };
+    axios.post("http://localhost:8000/register", {
+      username,
+      password
+    }).then(function(r) {
+      if(r.data.status == "success") {
+        alert("Registered");
+      } else {
+        alert("register failed...");
+      }
+      console.log(r);
+    });
+  }
+
+  document.getElementById("switch-to-login").onclick = function() {
+    document.getElementById("register").style.display = "none";
+    document.getElementById("login").style.display = "block";
+  }
+
+  document.getElementById("switch-to-register").onclick = function() {
+    document.getElementById("login").style.display = "none";
+    document.getElementById("register").style.display = "block";
+  }
 
   document.getElementById("langc").onclick = function(e) {
     lang = "c";
@@ -180,55 +247,67 @@
     });
   }
 
-  function gotoMainWindow(num) {
+  function gotoMainWindow(obj) {
     return function() {
-      localStorage.setItem("currentProblem", "" + num);
-      var item = JSON.parse(localStorage.getItem("problems"))[num];
+      localStorage.setItem("currentProblem", JSON.stringify(obj));
       document.getElementById("probList").style.display = "none";
       document.getElementById("main-window").style.display = "block";
-      document.getElementById("mtitle").innerText = item.title;
-      document.getElementById("mdesc").innerText = item.desc;
+      document.getElementById("mtitle").innerText = obj.title;
+      document.getElementById("mdesc").innerText = obj.desc;
     };
   }
 
   function refreshProblemList() {
-    var arr = JSON.parse(localStorage.getItem("problems"));
-    document.getElementById("longlist").innerHTML = "";
+    // var arr = JSON.parse(localStorage.getItem("problems"));
+    var username = localStorage.getItem("username");
+    var sessionid = localStorage.getItem("sessionid");
+    axios.post("http://localhost:8000/getproblems", {
+      username,
+      sessionid
+    }).then(function(r) {
+      if (r.data.status == "success") {
+        console.log(r.data);
+        document.getElementById("longlist").innerHTML = "";
 
-    var masterButton = document.createElement("input");
-    masterButton.type = "button";
-    masterButton.onclick = function() {
-      document.getElementById("probList").style.display = "none";
-      document.getElementById("problem-creator").style.display = "block";
-    }
-    masterButton.value = "Back";
-    document.getElementById("longlist").appendChild(masterButton);
+        // var masterButton = document.createElement("input");
+        // masterButton.type = "button";
+        // masterButton.onclick = function() {
+        //   document.getElementById("probList").style.display = "none";
+        //   document.getElementById("problem-creator").style.display = "block";
+        // }
+        // masterButton.value = "Back";
+        // document.getElementById("longlist").appendChild(masterButton);
 
-    for (var i = 0; i < arr.length; i++) {
-      var item = document.createElement("div");
-      var d = document.createElement("p");
-      d.innerText = arr[i].title;
-      var btnEnter = document.createElement("input");
-      btnEnter.type = "button";
-      btnEnter.onclick = gotoMainWindow(i);
-      btnEnter.value = "Go!";
-      var btnDelete = document.createElement("input");
-      btnDelete.type = "button";
-      btnDelete.onclick = deleteAProblem(i);
-      btnDelete.value = "Delete";
-      item.appendChild(d);
-      item.appendChild(btnEnter);
-      item.appendChild(btnDelete);
-      document.getElementById("longlist").appendChild(item);
-    }
+        for (var i = 0; i < r.data.list.length; i++) {
+          var item = document.createElement("div");
+          var d = document.createElement("p");
+          d.innerText = r.data.list[i].title;
+          var btnEnter = document.createElement("input");
+          btnEnter.type = "button";
+          btnEnter.onclick = gotoMainWindow(r.data.list[i]);
+          btnEnter.value = "Go!";
+          var btnDelete = document.createElement("input");
+          btnDelete.type = "button";
+          btnDelete.onclick = deleteAProblem(i);
+          btnDelete.value = "Delete";
+          item.appendChild(d);
+          item.appendChild(btnEnter);
+          item.appendChild(btnDelete);
+          document.getElementById("longlist").appendChild(item);
+        }
+      } else {
+        alert("refresh failed...");
+      }
+    });
   }
 
   function deleteAProblem(num) {
     return function() {
-      var arr = JSON.parse(localStorage.getItem("problems"));
-      arr.splice(num, 1);
-      localStorage.setItem("problems", JSON.stringify(arr));
-      refreshProblemList();
+      //var arr = JSON.parse(localStorage.getItem("problems"));
+      var arr = getProblemsList();
+      // arr.splice(num, 1);
+      // localStorage.setItem("problems", JSON.stringify(arr));
+      // refreshProblemList();
     }
   }
 

@@ -5,6 +5,7 @@
 #include <cstdlib>
 #include "httplib.h"
 #include "json.hpp"
+#include "sqlitewrapper.hpp"
 
 #define OUTPUTLOCATION "/home/guest/tempbin/"
 
@@ -100,8 +101,21 @@ std::string generateFileName() {
   return name;
 }
 
+std::string generateSessionID() {
+  std::string name = "";
+  for (int i = 0; i < 128; i++) {
+    name += (rand() % 26) + 'a';
+  }
+  return name;
+}
+
 int main() {
   httplib::Server svr;
+
+  std::string dbname = OUTPUTLOCATION;
+  dbname += "test.db";
+
+  Sqlite::SqliteConnection conn(dbname.c_str());
 
   std::srand(std::time(NULL));
 
@@ -147,6 +161,115 @@ int main() {
 
     res.set_content("{\"errors\":\"" + compileResult + "\",\"result\":\"" + runResult + "\"}", "application/json");
     std::cout << "Done!!!" << std::endl;
+  });
+
+  svr.Options("/getproblems", [](const httplib::Request &req, httplib::Response &res){
+    allowCORS(res);
+  });
+
+  svr.Post("/getproblems", [&](const httplib::Request &req, httplib::Response &res){
+    allowCORS(res);
+    nlohmann::json j = nlohmann::json::parse(req.body);
+    std::string username = j["username"];
+    std::string sessionid = j["sessionid"];
+
+    for (auto row: Sqlite::SqliteStatement(conn, "select sessionid from sessions where username = ?", username)) {
+      
+      if (row.getString(0) != sessionid) {
+        continue;
+      }
+      
+      nlohmann::json out;
+      out["status"] = "success";
+      out["list"] = {};
+      for (auto problem: Sqlite::SqliteStatement(conn, "select title, description, testcases, answers from problems")) {
+        nlohmann::json p;
+        p["title"] = problem.getString(0);
+        p["desc"] = problem.getString(1);
+        p["testcases"] = problem.getString(2);
+        p["answers"] = problem.getString(3);
+        out["list"].push_back(p);
+      }
+      std::cout << "Problem request success" << std::endl;
+      res.set_content(out.dump(), "application/json");
+      return ;
+    }
+
+    std::cout << "Problem request failed" << std::endl;
+    res.set_content("{\"status\":\"failed\"}", "application/json");
+    return ;
+  });
+
+  svr.Options("/postproblem", [](const httplib::Request &req, httplib::Response &res){
+    allowCORS(res);
+  });
+
+  svr.Post("/postproblem", [&](const httplib::Request &req, httplib::Response &res){
+    allowCORS(res);
+    nlohmann::json j = nlohmann::json::parse(req.body);
+    std::string username = j["admin"];
+    std::string password = j["password"];
+    std::string title = j["title"];
+    std::string description = j["desc"];
+    std::string testcases = j["testcases"];
+    std::string answers = j["answers"];
+
+    for (auto row: Sqlite::SqliteStatement(conn, "select password from admin where username = ?", username)) {
+      if (row.getString(0) == password) {
+        Sqlite::sqliteExecute(conn, "insert into problems(title, description, testcases, answers) values(?, ?, ?, ?)", title, description, testcases, answers);
+
+        std::cout << "Problem posted" << std::endl;
+        res.set_content("{\"status\":\"success\"}", "application/json");
+        return ;
+      }
+    }
+    std::cout << "Problem error" << std::endl;
+    res.set_content("{\"status\":\"failed\"}", "application/json");
+  });
+
+  svr.Options("/register", [](const httplib::Request &req, httplib::Response &res){
+    allowCORS(res);
+  });
+
+  svr.Post("/register", [&](const httplib::Request &req, httplib::Response &res){
+    allowCORS(res);
+    nlohmann::json j = nlohmann::json::parse(req.body);
+    std::string username = j["username"];
+    std::string password = j["password"];
+
+    Sqlite::sqliteExecute(conn, "insert into users(username, password) values(?, ?)", username, password);
+
+    std::cout << "Register done" << std::endl;
+    res.set_content("{\"status\":\"success\"}", "application/json");
+
+  });
+
+  svr.Options("/login", [](const httplib::Request &req, httplib::Response &res){
+    allowCORS(res);
+  });
+
+  svr.Post("/login", [&](const httplib::Request &req, httplib::Response &res){
+    allowCORS(res);
+    nlohmann::json j = nlohmann::json::parse(req.body);
+    std::string username = j["username"];
+    std::string password = j["password"];
+
+    for (auto row: Sqlite::SqliteStatement(conn, "select password from users where username = ?", username)) {
+      if (row.getString(0) == password) {
+        // allow
+        std::string sessionid = generateSessionID();
+        Sqlite::sqliteExecute(conn, "insert into sessions(username, sessionid) values (?, ?)", username, sessionid);
+        std::cout << "Login Success!" << std::endl;
+        nlohmann::json out;
+        out["status"] = "success";
+        out["username"] = username;
+        out["sessionid"] = sessionid;
+        res.set_content(out.dump(), "application/json");
+        return;
+      }
+    }
+    std::cout << "Login failed" << std::endl;
+    res.set_content("{\"status\":\"failed\"}", "application/json");
   });
 
   svr.listen("localhost", 8000);
