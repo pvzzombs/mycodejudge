@@ -10,19 +10,19 @@
 
   var lang = "c";
 
-  if (localStorage.getItem("problems") == null) {
-    localStorage.setItem("problems", "[]");
-  }
+  // if (localStorage.getItem("problems") == null) {
+  //   localStorage.setItem("problems", "[]");
+  // }
 
-  if (localStorage.getItem("currentProblem") == null) {
-    localStorage.setItem("currentProblem", "")
-  }
+  // if (localStorage.getItem("currentProblem") == null) {
+  //   localStorage.setItem("currentProblem", "")
+  // }
 
   document.getElementById("run").onclick = function() {
     Swal.fire({
       title: "Please wait..."
     })
-    axios.post("http://localhost:8000/post", {
+    axios.post("http://localhost:8000/postsafe", {
       post: editor.getValue(),
       input: document.getElementById("text-input").value,
       lang: lang
@@ -118,7 +118,7 @@
     // console.log(index);
     var item = JSON.parse(localStorage.getItem("currentProblem"));
     console.log(item);
-    axios.post("http://localhost:8000/post", {
+    axios.post("http://localhost:8000/postsafe", {
       post: editor.getValue(),
       input: item.testcases,
       lang: lang
@@ -137,25 +137,6 @@
         })
       }
     });
-  }
-
-  // Entry point
-  if (localStorage.getItem("sessionid") != null) {
-    document.getElementById("probList").style.display = "block";
-    refreshProblemList();
-    var btn = document.createElement("input");
-    btn.type = "button";
-    btn.value = "Logout";
-    btn.onclick = function() {
-      document.getElementById("probList").style.display = "none";
-      document.getElementById("login").style.display = "block";
-      localStorage.removeItem("username");
-      localStorage.removeItem("sessionid");
-      window.location.reload();
-    }
-    document.body.appendChild(btn);
-  } else {
-    document.getElementById("login").style.display = "block";
   }
 
   document.getElementById("login-form").onsubmit = function(e) {
@@ -229,7 +210,7 @@
   }
 
   document.getElementById("mback").onclick = function(e) {
-    document.getElementById("main-window").style.display = "none";
+    document.getElementById("main-div").style.display = "none";
     document.getElementById("probList").style.display = "block";
   }
 
@@ -242,8 +223,24 @@
       answers: document.getElementById("panswers").value
     });
     localStorage.setItem("problems", JSON.stringify(arr));
-    Swal.fire({
-      text: "Done!"
+    
+    axios.post("http://localhost:8000/postproblem", {
+      admin: document.getElementById("admin-name").value,
+      password: document.getElementById("admin-password").value,
+      title: document.getElementById("ptitle").value,
+      desc: document.getElementById("pdesc").value,
+      testcases: document.getElementById("ptestcases").value,
+      answers: document.getElementById("panswers").value
+    }).then(function(r) {
+      if(r.data.status == "success") {
+        Swal.fire({
+          text: "Done!"
+        });
+      } else {
+        Swal.fire({
+          text: "Error posting problem"
+        });
+      }
     });
   }
 
@@ -251,7 +248,7 @@
     return function() {
       localStorage.setItem("currentProblem", JSON.stringify(obj));
       document.getElementById("probList").style.display = "none";
-      document.getElementById("main-window").style.display = "block";
+      document.getElementById("main-div").style.display = "block";
       document.getElementById("mtitle").innerText = obj.title;
       document.getElementById("mdesc").innerText = obj.desc;
     };
@@ -316,4 +313,52 @@
     document.getElementById("probList").style.display = "block";
     refreshProblemList();
   }
+
+  function hideAll() {
+    document.getElementById("main-div").style.display = "none";
+    document.getElementById("login").style.display = "none";
+    document.getElementById("register").style.display = "none";
+    document.getElementById("problem-creator").style.display = "none";
+    document.getElementById("probList").style.display = "none";
+  }
+
+  function addLogoutButton() {
+    var btn = document.createElement("input");
+    btn.type = "button";
+    btn.value = "Logout";
+    btn.onclick = function() {
+      axios.post("http://localhost:8000/logout", {
+        username: localStorage.getItem("username"),
+        sessionid: localStorage.getItem("sessionid")
+      }).then(function(r) {
+        localStorage.removeItem("username");
+        localStorage.removeItem("sessionid");
+        hideAll();
+        document.getElementById("login").style.display = "block";
+        window.location.reload();
+      });
+    }
+    document.body.appendChild(btn);
+  }
+
+  var router = new Navigo("/");
+
+  router.on("/", function() {
+    hideAll();
+    // Entry point
+    if (localStorage.getItem("sessionid") != null) {
+      document.getElementById("probList").style.display = "block";
+      refreshProblemList();
+      addLogoutButton();
+    } else {
+      document.getElementById("login").style.display = "block";
+    }
+  });
+
+  router.on("/create", function() {
+    hideAll();
+    document.getElementById("problem-creator").style.display = "block";
+  });
+
+  router.resolve();
 })();

@@ -3,11 +3,14 @@
 #include <cstring>
 #include <iostream>
 #include <cstdlib>
+
+#include <sodium.h>
 #include "httplib.h"
 #include "json.hpp"
 #include "sqlitewrapper.hpp"
 
 #define OUTPUTLOCATION "/home/guest/tempbin/"
+#define FAKESYSTEMLOCATION "/home/guest/fakesystem"
 
 void allowCORS(httplib::Response &res) {
   res.set_header("Access-Control-Allow-Origin", "*");
@@ -93,6 +96,34 @@ bool run(std::string name, std::string input, std::string &result) {
   return 1;
 }
 
+bool runChroot(std::string name, std::string input, std::string &result) {
+  std::FILE * pipe = NULL;
+  char buffer[128];
+  std::ofstream inputTextFile;
+  std::string fileNameScoped = name + ".txt";
+  std::string fileName = FAKESYSTEMLOCATION + fileNameScoped;
+  std::string cmd = "timeout 2s unshare -r chroot " FAKESYSTEMLOCATION " " + name + ".out < " + fileName + " 2>&1";
+
+  inputTextFile.open(fileName.c_str());
+  inputTextFile << input;
+  inputTextFile.close();
+
+  pipe = popen(cmd.c_str(), "r");
+  while(fgets(buffer, 128, pipe) != NULL) {
+    int i = 0;
+    while(i < 128 && buffer[i] != 0) {
+      if (buffer[i] == '\n') {
+        result += "\\n";
+      } else {
+        result += buffer[i];
+      }
+      i++;
+    }
+  }
+  pclose(pipe);
+  return 1;
+}
+
 std::string generateFileName() {
   std::string name = "";
   for (int i = 0; i < 16; i++) {
@@ -109,7 +140,25 @@ std::string generateSessionID() {
   return name;
 }
 
+std::string hash_password(std::string password) {
+  // password hash len
+  char passwordHash[crypto_pwhash_STRBYTES];
+  if (crypto_pwhash_str(passwordHash, password.c_str(), password.size(), crypto_pwhash_OPSLIMIT_INTERACTIVE, crypto_pwhash_MEMLIMIT_INTERACTIVE) != 0) {
+    throw ;
+  }
+  return std::string(passwordHash);
+}
+
+bool verify_password(std::string password, std::string passwordHash) {
+  return crypto_pwhash_str_verify(passwordHash.c_str(), password.c_str(), password.size()) == 0;
+}
+
 int main() {
+  if (sodium_init() < 0) {
+    std::cout << "libsodium not working" << std::endl;
+    return 1;
+  }
+
   httplib::Server svr;
 
   std::string dbname = OUTPUTLOCATION;
@@ -163,6 +212,49 @@ int main() {
     std::cout << "Done!!!" << std::endl;
   });
 
+  svr.Options("/postsafe", [](const httplib::Request &req, httplib::Response &res){
+    allowCORS(res);
+  });
+
+  svr.Post("/postsafe", [](const httplib::Request &req, httplib::Response &res){
+    allowCORS(res);
+    nlohmann::json j = nlohmann::json::parse(req.body);
+    std::string program = j["post"];
+    std::string inputText = j["input"];
+    std::string lang = j["lang"];
+    std::string compileResult = "";
+    std::string runResult = "";
+    std::string scopedname = "/home/" + generateFileName();
+    std::string name = FAKESYSTEMLOCATION + scopedname;
+    std::string fileName = name;
+
+    if (lang == "cpp") {
+      fileName += ".cpp";
+    } else if (lang == "c") {
+      fileName += ".c";
+    }
+
+    std::cout << "Received..." << std::endl;
+
+    std::ofstream cppFile;
+    cppFile.open(fileName);
+    cppFile << program;
+    cppFile.close();
+    //compile
+    int r = 0;
+    if (lang == "cpp") {
+      r = compileCpp(name, compileResult);
+    } else if (lang == "c") {
+      r = compileC(name, compileResult);
+    }
+    if (r) {
+      runChroot(scopedname, inputText, runResult);
+    } 
+
+    res.set_content("{\"errors\":\"" + compileResult + "\",\"result\":\"" + runResult + "\"}", "application/json");
+    std::cout << "Done!!!" << std::endl;
+  });
+
   svr.Options("/getproblems", [](const httplib::Request &req, httplib::Response &res){
     allowCORS(res);
   });
@@ -175,7 +267,7 @@ int main() {
 
     for (auto row: Sqlite::SqliteStatement(conn, "select sessionid from sessions where username = ?", username)) {
       
-      if (row.getString(0) != sessionid) {
+      if (!verify_password(sessionid, row.getString(0))) {
         continue;
       }
       
@@ -235,7 +327,7 @@ int main() {
     allowCORS(res);
     nlohmann::json j = nlohmann::json::parse(req.body);
     std::string username = j["username"];
-    std::string password = j["password"];
+    std::string password = hash_password(j["password"]);
 
     Sqlite::sqliteExecute(conn, "insert into users(username, password) values(?, ?)", username, password);
 
@@ -255,10 +347,11 @@ int main() {
     std::string password = j["password"];
 
     for (auto row: Sqlite::SqliteStatement(conn, "select password from users where username = ?", username)) {
-      if (row.getString(0) == password) {
+      if (verify_password(password, row.getString(0))) {
         // allow
         std::string sessionid = generateSessionID();
-        Sqlite::sqliteExecute(conn, "insert into sessions(username, sessionid) values (?, ?)", username, sessionid);
+        std::string sessionidhash = hash_password(sessionid);
+        Sqlite::sqliteExecute(conn, "insert into sessions(username, sessionid) values (?, ?)", username, sessionidhash);
         std::cout << "Login Success!" << std::endl;
         nlohmann::json out;
         out["status"] = "success";
@@ -270,6 +363,19 @@ int main() {
     }
     std::cout << "Login failed" << std::endl;
     res.set_content("{\"status\":\"failed\"}", "application/json");
+  });
+
+  svr.Options("/logout", [](const httplib::Request &req, httplib::Response &res){
+    allowCORS(res);
+  });
+
+  svr.Post("/logout", [&](const httplib::Request &req, httplib::Response &res){
+    allowCORS(res);
+    nlohmann::json j = nlohmann::json::parse(req.body);
+    std::string username = j["username"];
+    std::string sessionid = j["sessionid"];
+    Sqlite::sqliteExecute(conn, "delete from sessions where username = ? and sessionid = ?", username, sessionid);
+    res.set_content("{\"status\":\"success\"}", "application/json");
   });
 
   svr.listen("localhost", 8000);

@@ -6,13 +6,13 @@
   <link rel="icon" type="image/svg+xml" href="/vite.svg" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Vite App</title>
-  <link rel="stylesheet" href="src/style.css">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet"
     integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+  <link rel="stylesheet" href="src/style.css">
 </head>
 
 <body>
-  <div id="main-window">
+  <div id="main-div" style="display: none;">
     <div class="row">
       <div id="editorParent" class="col-md-6">
         <div id="editor"></div>
@@ -49,7 +49,7 @@
     <input type="button" value="Check" id="solve">
     <input type="button" value="Back" name="" id="mback">
   </div>
-  <div id="login">
+  <div id="login" style="display: none;">
     <form id="login-form">
       <input type="text" name="" id="username">
       <input type="password" name="" id="password">
@@ -57,7 +57,7 @@
       <input type="button" value="Register here" id="switch-to-register">
     </form>
   </div>
-  <div id="register">
+  <div id="register" style="display: none;">
     <form id="register-form">
       <input type="text" name="" id="r-username">
       <input type="password" name="" id="r-password">
@@ -65,23 +65,25 @@
       <input type="button" value="Login here" id="switch-to-login">
     </form>
   </div>
-  <div id="problem-creator">
+  <div id="problem-creator" style="display: none;">
     <textarea name="" id="ptitle" placeholder="Title here"></textarea>
     <textarea name="" id="pdesc" placeholder="Description here"></textarea>
     <textarea name="" id="ptestcases" placeholder="Test cases here"></textarea>
     <textarea name="" id="panswers" placeholder="Answer here"></textarea>
+    <input type="text" name="" id="admin-name" placeholder="username">
+    <input type="password" name="" id="admin-password" placeholder="password">
     <input type="button" value="Submit" id="problemSubmit">
     <input type="button" name="" id="gotoList" value="Go to Problems list">
   </div>
-  <div id="probList">
+  <div id="probList" style="display: none;">
     <div id="longlist">
-
     </div>
   </div>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
     integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
     crossorigin="anonymous"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://unpkg.com/navigo@8.11.1/lib/navigo.js"></script>
   <script src="/src/axios.min.js"></script>
   <script src="/src/ace.js"></script>
   <script src="/src/main.js"></script>
