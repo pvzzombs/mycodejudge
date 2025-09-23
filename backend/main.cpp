@@ -11,6 +11,8 @@
 
 #define OUTPUTLOCATION "/home/guest/tempbin/"
 #define FAKESYSTEMLOCATION "/home/guest/fakesystem"
+#define ADMINNAME "admin"
+#define ADMINPASS "admin"
 
 void allowCORS(httplib::Response &res) {
   res.set_header("Access-Control-Allow-Origin", "*");
@@ -159,6 +161,9 @@ int main() {
     return 1;
   }
 
+  std::string adminName = ADMINNAME;
+  std::string adminPassword = hash_password(ADMINPASS);
+
   httplib::Server svr;
 
   std::string dbname = OUTPUTLOCATION;
@@ -167,6 +172,9 @@ int main() {
   Sqlite::SqliteConnection conn(dbname.c_str());
 
   std::srand(std::time(NULL));
+
+  Sqlite::sqliteExecute(conn, "delete from admin");
+  Sqlite::sqliteExecute(conn, "insert into admin(username, password) values(?, ?)", adminName, adminPassword);
 
   std::cout << "Running..." << std::endl;
 
@@ -255,6 +263,28 @@ int main() {
     std::cout << "Done!!!" << std::endl;
   });
 
+  svr.Options("/deleteproblems", [](const httplib::Request &req, httplib::Response &res){
+    allowCORS(res);
+  });
+
+  svr.Post("/deleteproblems", [&](const httplib::Request &req, httplib::Response &res){
+    allowCORS(res);
+    nlohmann::json j = nlohmann::json::parse(req.body);
+    std::string username = j["admin"];
+    std::string password = j["password"];
+    for (auto row: Sqlite::SqliteStatement(conn, "select password from admin where username = ?", username)) {
+      if (verify_password(password, row.getString(0))) {
+        Sqlite::sqliteExecute(conn, "delete from problems");
+
+        std::cout << "All problems deleted" << std::endl;
+        res.set_content("{\"status\":\"success\"}", "application/json");
+        return ;
+      }
+    }
+    std::cout << "Deleting problems failed" << std::endl;
+    res.set_content("{\"status\":\"failed\"}", "application/json");
+  });
+
   svr.Options("/getproblems", [](const httplib::Request &req, httplib::Response &res){
     allowCORS(res);
   });
@@ -307,7 +337,7 @@ int main() {
     std::string answers = j["answers"];
 
     for (auto row: Sqlite::SqliteStatement(conn, "select password from admin where username = ?", username)) {
-      if (row.getString(0) == password) {
+      if (verify_password(password, row.getString(0))) {
         Sqlite::sqliteExecute(conn, "insert into problems(title, description, testcases, answers) values(?, ?, ?, ?)", title, description, testcases, answers);
 
         std::cout << "Problem posted" << std::endl;

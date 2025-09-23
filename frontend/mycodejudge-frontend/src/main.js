@@ -10,14 +10,6 @@
 
   var lang = "c";
 
-  // if (localStorage.getItem("problems") == null) {
-  //   localStorage.setItem("problems", "[]");
-  // }
-
-  // if (localStorage.getItem("currentProblem") == null) {
-  //   localStorage.setItem("currentProblem", "")
-  // }
-
   document.getElementById("run").onclick = function() {
     Swal.fire({
       title: "Please wait..."
@@ -215,15 +207,6 @@
   }
 
   document.getElementById("problemSubmit").onclick = function(e) {
-    var arr = JSON.parse(localStorage.getItem("problems"));
-    arr.push({
-      title: document.getElementById("ptitle").value,
-      desc: document.getElementById("pdesc").value,
-      testcases: document.getElementById("ptestcases").value,
-      answers: document.getElementById("panswers").value
-    });
-    localStorage.setItem("problems", JSON.stringify(arr));
-    
     axios.post("http://localhost:8000/postproblem", {
       admin: document.getElementById("admin-name").value,
       password: document.getElementById("admin-password").value,
@@ -283,13 +266,13 @@
           btnEnter.type = "button";
           btnEnter.onclick = gotoMainWindow(r.data.list[i]);
           btnEnter.value = "Go!";
-          var btnDelete = document.createElement("input");
-          btnDelete.type = "button";
-          btnDelete.onclick = deleteAProblem(i);
-          btnDelete.value = "Delete";
+          // var btnDelete = document.createElement("input");
+          // btnDelete.type = "button";
+          // btnDelete.onclick = deleteAProblem(i);
+          // btnDelete.value = "Delete";
           item.appendChild(d);
           item.appendChild(btnEnter);
-          item.appendChild(btnDelete);
+          // item.appendChild(btnDelete);
           document.getElementById("longlist").appendChild(item);
         }
       } else {
@@ -314,12 +297,26 @@
     refreshProblemList();
   }
 
+  document.getElementById("delete-problem-button").onclick = function(e) {
+    axios.post("http://localhost:8000/deleteproblems", {
+      admin: document.getElementById("d-admin-name").value,
+      password: document.getElementById("d-admin-pass").value
+    }).then(function(r) {
+      if (r.data.status == "success") {
+        alert("All problems deleted");
+      } else {
+        alert("Cannot delete all problems");
+      }
+    })
+  }
+
   function hideAll() {
     document.getElementById("main-div").style.display = "none";
     document.getElementById("login").style.display = "none";
     document.getElementById("register").style.display = "none";
     document.getElementById("problem-creator").style.display = "none";
     document.getElementById("probList").style.display = "none";
+    document.getElementById("problem-deleter").style.display = "none";
   }
 
   function addLogoutButton() {
@@ -358,6 +355,11 @@
   router.on("/create", function() {
     hideAll();
     document.getElementById("problem-creator").style.display = "block";
+  });
+
+  router.on("/delete", function() {
+    hideAll();
+    document.getElementById("problem-deleter").style.display = "block";
   });
 
   router.resolve();
