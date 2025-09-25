@@ -9,6 +9,7 @@
   editor.setValue("#include <stdio.h>\nint main() {\n  return 0;\n}");
 
   var lang = "c";
+  var currentProblemVar = null;
 
   document.getElementById("run").onclick = function() {
     Swal.fire({
@@ -90,8 +91,8 @@
       arr2.pop();
     }
 
-    console.log(arr1);
-    console.log(arr2);
+    // console.log(arr1);
+    // console.log(arr2);
 
     if (arr1.length != arr2.length) {
       return false;
@@ -108,8 +109,9 @@
   document.getElementById("solve").onclick = function(e) {
     // var index = parseInt(JSON.parse(localStorage.getItem("currentProblem")));
     // console.log(index);
-    var item = JSON.parse(localStorage.getItem("currentProblem"));
-    console.log(item);
+    // var item = JSON.parse(localStorage.getItem("currentProblem"));
+    var item = currentProblemVar;
+    // console.log(item);
     axios.post("http://localhost:8000/postsafe", {
       post: editor.getValue(),
       input: item.testcases,
@@ -229,7 +231,8 @@
 
   function gotoMainWindow(obj) {
     return function() {
-      localStorage.setItem("currentProblem", JSON.stringify(obj));
+      // localStorage.setItem("currentProblem", JSON.stringify(obj));
+      currentProblemVar = obj;
       document.getElementById("probList").style.display = "none";
       document.getElementById("main-div").style.display = "block";
       document.getElementById("mtitle").innerText = obj.title;
@@ -246,7 +249,7 @@
       sessionid
     }).then(function(r) {
       if (r.data.status == "success") {
-        console.log(r.data);
+        // console.log(r.data);
         document.getElementById("longlist").innerHTML = "";
 
         // var masterButton = document.createElement("input");
@@ -289,12 +292,6 @@
       // localStorage.setItem("problems", JSON.stringify(arr));
       // refreshProblemList();
     }
-  }
-
-  document.getElementById("gotoList").onclick = function(e) {
-    document.getElementById("problem-creator").style.display = "none";
-    document.getElementById("probList").style.display = "block";
-    refreshProblemList();
   }
 
   document.getElementById("delete-problem-button").onclick = function(e) {

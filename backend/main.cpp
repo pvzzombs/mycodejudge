@@ -5,9 +5,9 @@
 #include <cstdlib>
 
 #include <sodium.h>
-#include "httplib.h"
-#include "json.hpp"
-#include "sqlitewrapper.hpp"
+#include "include/httplib.h"
+#include "include/json.hpp"
+#include "include/sqlitewrapper.hpp"
 
 #define OUTPUTLOCATION "/home/guest/tempbin/"
 #define FAKESYSTEMLOCATION "/home/guest/fakesystem"
@@ -358,6 +358,12 @@ int main() {
     nlohmann::json j = nlohmann::json::parse(req.body);
     std::string username = j["username"];
     std::string password = hash_password(j["password"]);
+
+    for (auto row: Sqlite::SqliteStatement(conn, "select username from users where username = ?", username)) {
+      std::cout << "Register duplicate" << std::endl;
+      res.set_content("{\"status\":\"failed\"}", "application/json");
+      return ;
+    }
 
     Sqlite::sqliteExecute(conn, "insert into users(username, password) values(?, ?)", username, password);
 
