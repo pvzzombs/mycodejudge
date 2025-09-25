@@ -11,42 +11,76 @@
 </head>
 
 <body>
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark px-3" id="navigation-bar">
+    <a class="navbar-brand fw-bold" href="#">MyCodeJudge</a>
+  </nav>
   <div id="main-div" style="display: none;">
-    <div class="row">
-      <div id="editorParent" class="col-md-6">
-        <div id="editor"></div>
-      </div>
-      <div class="col-md-6">
-        <div class="mb-3">
-          <textarea name="" id="text-input" class="" rows="8" placeholder="Input here"></textarea>
+    <div class="container-fluid py-4 bg-light">
+      <div class="row g-4">
+        <!-- Code Editor -->
+        <div id="editorParent" class="col-md-6">
+          <div class="card shadow-sm rounded-3 h-100">
+            <div class="card-header bg-primary text-white fw-semibold">
+              Code Editor
+            </div>
+            <div class="card-body p-0">
+              <div id="editor" style="height: 400px; border-radius: 0 0 .5rem .5rem;"></div>
+            </div>
+          </div>
         </div>
-        <div class="mb-3">
-          <textarea name="" id="output" class="" rows="8" placeholder="Output shows here"></textarea>
+
+        <!-- Input / Output -->
+        <div class="col-md-6">
+          <div class="card shadow-sm rounded-3 mb-4">
+            <div class="card-header bg-secondary text-white fw-semibold">
+              Input
+            </div>
+            <div class="card-body">
+              <textarea id="text-input" class="form-control" rows="6" placeholder="Enter your input here"></textarea>
+            </div>
+          </div>
+
+          <div class="card shadow-sm rounded-3">
+            <div class="card-header bg-dark text-white fw-semibold">
+              Output
+            </div>
+            <div class="card-body">
+              <textarea id="output" class="form-control bg-light" rows="6" placeholder="Program output will appear here"
+                readonly></textarea>
+            </div>
+          </div>
         </div>
       </div>
-    </div>
-    <h2>Title:</h2>
-    <div id="mtitle">
 
-    </div>
-    <h2>Description:</h2>
-    <div id="mdesc">
+      <!-- Problem Statement -->
+      <div class="mt-5">
+        <h3 class="fw-bold text-primary">📌 Title</h3>
+        <div id="mtitle" class="p-3 border rounded bg-white shadow-sm mb-4"></div>
 
+        <h3 class="fw-bold text-primary">📝 Description</h3>
+        <div id="mdesc" class="p-3 border rounded bg-white shadow-sm"></div>
+      </div>
+
+      <!-- Controls -->
+      <div class="d-flex flex-wrap align-items-center gap-3 mt-5">
+        <!-- Language Dropdown -->
+        <div class="dropdown">
+          <button class="btn btn-outline-primary dropdown-toggle" type="button" id="chooseLang"
+            data-bs-toggle="dropdown" aria-expanded="false">
+            🌐 Choose Language
+          </button>
+          <ul class="dropdown-menu" aria-labelledby="chooseLang">
+            <li><a class="dropdown-item" href="#" id="langc">C</a></li>
+            <li><a class="dropdown-item" href="#" id="langcpp">C++</a></li>
+          </ul>
+        </div>
+
+        <!-- Action Buttons -->
+        <button class="btn btn-success" id="run">▶️ Run</button>
+        <button class="btn btn-warning text-dark" id="solve">✅ Check</button>
+        <button class="btn btn-outline-secondary" id="mback">⬅️ Back</button>
+      </div>
     </div>
-    <br>
-    <div class="dropdown">
-      <button class="btn btn-secondary dropdown-toggle" type="button" id="chooseLang" data-bs-toggle="dropdown"
-        aria-expanded="false">
-        Choose Language
-      </button>
-      <ul class="dropdown-menu" aria-labelledby="chooseLang">
-        <li><a class="dropdown-item" href="#" id="langc">C</a></li>
-        <li><a class="dropdown-item" href="#" id="langcpp">C++</a></li>
-      </ul>
-    </div>
-    <input type="button" value="Submit and run" id="run">
-    <input type="button" value="Check" id="solve">
-    <input type="button" value="Back" name="" id="mback">
   </div>
   <div id="login" style="display: none;">
     <div class="d-flex justify-content-center align-items-center vh-100 bg-light">
@@ -91,22 +125,91 @@
     </div>
   </div>
   <div id="problem-creator" style="display: none;">
-    <textarea name="" id="ptitle" placeholder="Title here"></textarea>
-    <textarea name="" id="pdesc" placeholder="Description here"></textarea>
-    <textarea name="" id="ptestcases" placeholder="Test cases here"></textarea>
-    <textarea name="" id="panswers" placeholder="Answer here"></textarea>
-    <input type="text" name="" id="admin-name" placeholder="username">
-    <input type="password" name="" id="admin-password" placeholder="password">
-    <input type="button" value="Submit" id="problemSubmit">
+    <div class="d-flex justify-content-center align-items-center min-vh-100 bg-light p-3">
+      <div class="card shadow-lg rounded-4 w-100" style="max-width: 700px;">
+        <div class="card-body">
+          <h3 class="text-center mb-4">➕ Add New Problem</h3>
+
+          <form id="problem-form" class="needs-validation" novalidate>
+            <div class="mb-3">
+              <label for="ptitle" class="form-label fw-semibold">Title</label>
+              <textarea id="ptitle" class="form-control" rows="1" placeholder="Enter problem title"></textarea>
+            </div>
+
+            <div class="mb-3">
+              <label for="pdesc" class="form-label fw-semibold">Description</label>
+              <textarea id="pdesc" class="form-control" rows="4" placeholder="Enter detailed description"></textarea>
+            </div>
+
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label for="ptestcases" class="form-label fw-semibold">Test Cases</label>
+                <textarea id="ptestcases" class="form-control" rows="5"
+                  placeholder="Enter sample test cases"></textarea>
+              </div>
+              <div class="col-md-6">
+                <label for="panswers" class="form-label fw-semibold">Answers</label>
+                <textarea id="panswers" class="form-control" rows="5" placeholder="Enter expected answers"></textarea>
+              </div>
+            </div>
+
+            <hr class="my-4">
+
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label for="admin-name" class="form-label fw-semibold">Admin Username</label>
+                <input type="text" id="admin-name" class="form-control" placeholder="Enter admin username">
+              </div>
+              <div class="col-md-6">
+                <label for="admin-password" class="form-label fw-semibold">Admin Password</label>
+                <input type="password" id="admin-password" class="form-control" placeholder="Enter admin password">
+              </div>
+            </div>
+
+            <div class="d-grid mt-4">
+              <button type="button" id="problemSubmit" class="btn btn-primary btn-lg">
+                🚀 Submit Problem
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
   </div>
   <div id="probList" style="display: none;">
     <div id="longlist">
     </div>
   </div>
   <div id="problem-deleter" style="display: none;">
-    <input type="text" name="" id="d-admin-name">
-    <input type="password" name="" id="d-admin-pass">
-    <input type="button" value="Delete all problems?" id="delete-problem-button">
+    <div class="d-flex justify-content-center align-items-center min-vh-100 bg-light p-3">
+      <div class="card shadow-lg rounded-4 w-100" style="max-width: 450px;">
+        <div class="card-body">
+          <h4 class="text-center text-danger mb-4">⚠️ Delete All Problems</h4>
+
+          <form id="delete-form">
+            <div class="mb-3">
+              <label for="d-admin-name" class="form-label fw-semibold">Admin Username</label>
+              <input type="text" id="d-admin-name" class="form-control" placeholder="Enter admin username">
+            </div>
+
+            <div class="mb-3">
+              <label for="d-admin-pass" class="form-label fw-semibold">Admin Password</label>
+              <input type="password" id="d-admin-pass" class="form-control" placeholder="Enter admin password">
+            </div>
+
+            <div class="d-grid mt-4">
+              <button type="button" id="delete-problem-button" class="btn btn-danger btn-lg">
+                🗑️ Delete All Problems
+              </button>
+            </div>
+          </form>
+
+          <p class="text-center text-muted mt-3" style="font-size: 0.9rem;">
+            This action <span class="text-danger fw-bold">cannot</span> be undone.
+          </p>
+        </div>
+      </div>
+    </div>
   </div>
   <script src="/src/js/bootstrap.bundle.min.js"></script>
   <script src="/src/js/sweetalert2.min.js"></script>
