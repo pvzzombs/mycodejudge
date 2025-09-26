@@ -10,6 +10,7 @@
 
   var lang = "c";
   var currentProblemVar = null;
+  var currentProblemSolved = false;
 
   document.getElementById("run").onclick = function () {
     Swal.fire({
@@ -111,6 +112,7 @@
     // console.log(index);
     // var item = JSON.parse(localStorage.getItem("currentProblem"));
     var item = currentProblemVar;
+    currentProblemSolved = false;
     // console.log(item);
     axios.post("http://localhost:8000/postsafe", {
       post: editor.getValue(),
@@ -120,6 +122,7 @@
       var data = r.data;
       var result = data.result;
       if (matchAnswers(result, item.answers)) {
+        currentProblemSolved = true;
         Swal.fire({
           text: "Passed!",
           icon: "success"
@@ -132,6 +135,33 @@
       }
     });
   }
+
+  document.getElementById("submitsolution").onclick = function() {
+    var d = (new Date()).toString();
+    var username = localStorage.getItem("username");
+    var sessionid = localStorage.getItem("sessionid");
+    var edit = editor.getValue();
+    console.log(d);
+    console.log(username);
+    if (!currentProblemSolved) {
+      Swal.fire({
+        text: "Check answer before clicking submit."
+      });
+      return;
+    }
+    axios.post("http://localhost:8000/submitsolution", {
+      username,
+      sessionid,
+      title: currentProblemVar.title,
+      solution: edit,
+      submitdate: d,
+      isSolved: currentProblemSolved ? "true" : "false"
+    }).then(function(r) {
+      Swal.fire({
+        text: "Submitted!"
+      })
+    });
+  };
 
   document.getElementById("login-form").onsubmit = function (e) {
     e.preventDefault();
