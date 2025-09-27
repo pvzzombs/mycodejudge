@@ -114,23 +114,23 @@
     var item = currentProblemVar;
     currentProblemSolved = false;
     // console.log(item);
-    axios.post("http://localhost:8000/postsafe", {
-      post: editor.getValue(),
-      input: item.testcases,
+    axios.post("http://localhost:8000/submitcheck", {
+      username: localStorage.getItem("username"),
+      sessionid: localStorage.getItem("sessionid"),
+      title: item.title,
+      code: editor.getValue(),
       lang: lang
     }).then(function (r) {
       var data = r.data;
-      var result = data.result;
-      if (matchAnswers(result, item.answers)) {
-        currentProblemSolved = true;
+      if (data.status == "success") {
         Swal.fire({
-          text: "Passed!",
-          icon: "success"
-        });
+          icon: "success",
+          text: "Solution accepted!"
+        })
       } else {
         Swal.fire({
-          text: "Failed!",
-          icon: "error"
+          icon: "error",
+          text: "Solution not accepted: " + data.message
         })
       }
     });
