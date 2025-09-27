@@ -587,8 +587,6 @@ int main() {
         nlohmann::json p;
         p["title"] = problem.getString(0);
         p["desc"] = problem.getString(1);
-        p["testcases"] = problem.getString(2);
-        p["answers"] = problem.getString(3);
         out["list"].push_back(p);
       }
       std::cout << "Problem request success" << std::endl;
