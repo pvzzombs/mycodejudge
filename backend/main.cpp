@@ -385,6 +385,26 @@ int main() {
   //   res.set_content("{\"status\":\"failed\"}", "application/json");
   // });
 
+  svr.Options("/getsubmissions", [](const httplib::Request &req, httplib::Response &res){
+    allowCORS(res);
+  });
+
+  svr.Get("/getsubmissions", [&](const httplib::Request &req, httplib::Response &res){
+    allowCORS(res);
+    nlohmann::json out;
+    out["list"] = {};
+    out["status"] = "success";
+    for (auto row: Sqlite::SqliteStatement(conn, "select username, title, submitdate from solutions")) {
+      nlohmann::json j;
+      j["username"] = row.getString(0);
+      j["title"] = row.getString(1);
+      j["submitdate"] = row.getInt(2);
+      out["list"].push_back(j);
+    }
+    res.set_content(out.dump(), "application/json");
+    std::cout << "Done!!!" << std::endl;
+  });
+
   svr.Options("/post", [](const httplib::Request &req, httplib::Response &res){
     allowCORS(res);
   });

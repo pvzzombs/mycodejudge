@@ -345,6 +345,7 @@
     document.getElementById("problem-creator").style.display = "none";
     document.getElementById("probList").style.display = "none";
     document.getElementById("problem-deleter").style.display = "none";
+    document.getElementById("submissions").style.display = "none";
   }
 
   function addLogoutButton() {
@@ -366,6 +367,42 @@
     }
     document.getElementById("navigation-bar").appendChild(btn);
     // document.body.appendChild(btn);
+  }
+
+  function showSubmissions() {
+    var elemList = document.getElementById("submitLists");
+    elemList.innerHTML = ""; // clear old entries
+
+    axios.get("http://localhost:8000/getsubmissions").then(function (r) {
+      for (var i = 0; i < r.data.list.length; i++) {
+        var submission = r.data.list[i];
+
+        var card = document.createElement("div");
+        card.className = "card mb-2 shadow-sm";
+
+        var cardBody = document.createElement("div");
+        cardBody.className = "card-body d-flex justify-content-between align-items-center";
+
+        var eName = document.createElement("span");
+        eName.className = "fw-bold text-primary";
+        eName.innerText = submission.username;
+
+        var eTitle = document.createElement("span");
+        eTitle.className = "text-dark mx-3 flex-grow-1";
+        eTitle.innerText = submission.title;
+
+        var eDate = document.createElement("span");
+        eDate.className = "text-muted small";
+        eDate.innerText = new Date(parseInt(submission.submitdate) * 1000).toLocaleString();
+
+        cardBody.appendChild(eName);
+        cardBody.appendChild(eTitle);
+        cardBody.appendChild(eDate);
+
+        card.appendChild(cardBody);
+        elemList.appendChild(card);
+      }
+    });
   }
 
   var router = new Navigo("/");
@@ -391,6 +428,12 @@
     hideAll();
     document.getElementById("problem-deleter").style.display = "block";
   });
+
+  router.on("/submissions", function () {
+    hideAll();
+    document.getElementById("submissions").style.display = "block";
+    showSubmissions();
+  })
 
   router.resolve();
 })();
