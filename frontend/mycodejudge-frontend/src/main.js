@@ -136,32 +136,32 @@
     });
   }
 
-  document.getElementById("submitsolution").onclick = function() {
-    var d = (new Date()).toString();
-    var username = localStorage.getItem("username");
-    var sessionid = localStorage.getItem("sessionid");
-    var edit = editor.getValue();
-    console.log(d);
-    console.log(username);
-    if (!currentProblemSolved) {
-      Swal.fire({
-        text: "Check answer before clicking submit."
-      });
-      return;
-    }
-    axios.post("http://localhost:8000/submitsolution", {
-      username,
-      sessionid,
-      title: currentProblemVar.title,
-      solution: edit,
-      submitdate: d,
-      isSolved: currentProblemSolved ? "true" : "false"
-    }).then(function(r) {
-      Swal.fire({
-        text: "Submitted!"
-      })
-    });
-  };
+  // document.getElementById("submitsolution").onclick = function() {
+  //   var d = (new Date()).toString();
+  //   var username = localStorage.getItem("username");
+  //   var sessionid = localStorage.getItem("sessionid");
+  //   var edit = editor.getValue();
+  //   console.log(d);
+  //   console.log(username);
+  //   if (!currentProblemSolved) {
+  //     Swal.fire({
+  //       text: "Check answer before clicking submit."
+  //     });
+  //     return;
+  //   }
+  //   axios.post("http://localhost:8000/submitsolution", {
+  //     username,
+  //     sessionid,
+  //     title: currentProblemVar.title,
+  //     solution: edit,
+  //     submitdate: d,
+  //     isSolved: currentProblemSolved ? "true" : "false"
+  //   }).then(function(r) {
+  //     Swal.fire({
+  //       text: "Submitted!"
+  //     })
+  //   });
+  // };
 
   document.getElementById("login-form").onsubmit = function (e) {
     e.preventDefault();

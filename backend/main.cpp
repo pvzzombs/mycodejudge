@@ -281,15 +281,15 @@ bool isAnswersMatch(std::string a, std::string b) {
     arr2.pop_back();
   }
 
-  for (auto &e: arr1) {
-    std::cout << e << ", ";
-  }
-  std::cout << std::endl;
+  // for (auto &e: arr1) {
+  //   std::cout << e << ", ";
+  // }
+  // std::cout << std::endl;
 
-  for (auto &e: arr2) {
-    std::cout << e << ", ";
-  }
-  std::cout << std::endl;
+  // for (auto &e: arr2) {
+  //   std::cout << e << ", ";
+  // }
+  // std::cout << std::endl;
 
   if (arr1.size() != arr2.size()) {
     return false;
@@ -356,34 +356,34 @@ int main() {
 
   std::cout << "Running..." << std::endl;
 
-  svr.Options("/submitsolution", [](const httplib::Request &req, httplib::Response &res){
-    allowCORS(res);
-  });
+  // svr.Options("/submitsolution", [](const httplib::Request &req, httplib::Response &res){
+  //   allowCORS(res);
+  // });
 
-  svr.Post("/submitsolution", [&](const httplib::Request &req, httplib::Response &res){
-    allowCORS(res);
-    nlohmann::json j = nlohmann::json::parse(req.body);
-    std::string username = j["username"];
-    std::cout << "Username is " << username << std::endl;
-    std::string sessionid = j["sessionid"];
-    std::string title = j["title"];
-    std::string solution = j["solution"];
-    std::string solndate = j["submitdate"];
-    std::string solved = j["isSolved"];
+  // svr.Post("/submitsolution", [&](const httplib::Request &req, httplib::Response &res){
+  //   allowCORS(res);
+  //   nlohmann::json j = nlohmann::json::parse(req.body);
+  //   std::string username = j["username"];
+  //   std::cout << "Username is " << username << std::endl;
+  //   std::string sessionid = j["sessionid"];
+  //   std::string title = j["title"];
+  //   std::string solution = j["solution"];
+  //   std::string solndate = j["submitdate"];
+  //   std::string solved = j["isSolved"];
 
-    for (auto row: Sqlite::SqliteStatement(conn, "select sessionid from sessions where username = ?", username)) {
-      if (verify_password(sessionid, row.getString(0))) {
-        Sqlite::sqliteExecute(conn, "insert into solutions(username, title, submitdate, solution, isSolved) values(?, ?, ?, ?, ?)", username, title, solndate, solution, solved);
+  //   for (auto row: Sqlite::SqliteStatement(conn, "select sessionid from sessions where username = ?", username)) {
+  //     if (verify_password(sessionid, row.getString(0))) {
+  //       Sqlite::sqliteExecute(conn, "insert into solutions(username, title, submitdate, solution, isSolved) values(?, ?, ?, ?, ?)", username, title, solndate, solution, solved);
 
-        std::cout << "Solution submit success!" << std::endl;
-        res.set_content("{\"status\":\"success\"}", "application/json");
-        return ;
-      }
-    }
+  //       std::cout << "Solution submit success!" << std::endl;
+  //       res.set_content("{\"status\":\"success\"}", "application/json");
+  //       return ;
+  //     }
+  //   }
 
-    std::cout << "Solution submit failed!" << std::endl;
-    res.set_content("{\"status\":\"failed\"}", "application/json");
-  });
+  //   std::cout << "Solution submit failed!" << std::endl;
+  //   res.set_content("{\"status\":\"failed\"}", "application/json");
+  // });
 
   svr.Options("/post", [](const httplib::Request &req, httplib::Response &res){
     allowCORS(res);
@@ -400,6 +400,8 @@ int main() {
     std::string name = OUTPUTLOCATION + generateFileName();
     std::string fileName = name;
 
+    nlohmann::json outjson;
+
     if (lang == "cpp") {
       fileName += ".cpp";
     } else if (lang == "c") {
@@ -415,15 +417,18 @@ int main() {
     //compile
     int r = 0;
     if (lang == "cpp") {
-      r = compileCpp(name, compileResult);
+      r = compileCppNoParsedEndline(name, compileResult);
     } else if (lang == "c") {
-      r = compileC(name, compileResult);
+      r = compileCNoParsedEndline(name, compileResult);
     }
     if (r) {
-      run(name, inputText, runResult);
+      runNoParsedEndline(name, inputText, runResult);
     } 
 
-    res.set_content("{\"errors\":\"" + compileResult + "\",\"result\":\"" + runResult + "\"}", "application/json");
+    outjson["errors"] = compileResult;
+    outjson["result"] = runResult;
+
+    res.set_content(outjson.dump(), "application/json");
     std::cout << "Done!!!" << std::endl;
   });
 
@@ -443,6 +448,8 @@ int main() {
     std::string name = FAKESYSTEMLOCATION + scopedname;
     std::string fileName = name;
 
+    nlohmann::json outjson;
+
     if (lang == "cpp") {
       fileName += ".cpp";
     } else if (lang == "c") {
@@ -458,15 +465,18 @@ int main() {
     //compile
     int r = 0;
     if (lang == "cpp") {
-      r = compileCpp(name, compileResult);
+      r = compileCppNoParsedEndline(name, compileResult);
     } else if (lang == "c") {
-      r = compileC(name, compileResult);
+      r = compileCNoParsedEndline(name, compileResult);
     }
     if (r) {
-      runChroot(scopedname, inputText, runResult);
+      runChrootNoParsedEndline(scopedname, inputText, runResult);
     } 
 
-    res.set_content("{\"errors\":\"" + compileResult + "\",\"result\":\"" + runResult + "\"}", "application/json");
+    outjson["errors"] = compileResult;
+    outjson["result"] = runResult;
+
+    res.set_content(outjson.dump(), "application/json");
     std::cout << "Done!!!" << std::endl;
   });
 
@@ -511,9 +521,9 @@ int main() {
           //compile
           int r = 0;
           if (lang == "cpp") {
-            r = compileCpp(name, compileResult);
+            r = compileCppNoParsedEndline(name, compileResult);
           } else if (lang == "c") {
-            r = compileC(name, compileResult);
+            r = compileCNoParsedEndline(name, compileResult);
           }
           if (r) {
             runChrootNoParsedEndline(scopedname, row2.getString(0), runResult);
@@ -521,6 +531,9 @@ int main() {
             if (isAnswersMatch(runResult, row2.getString(1))) {
               outjson["status"] = "success";
               outjson["message"] = "Solution accepted";
+
+              Sqlite::sqliteExecute(conn, "insert into solutions(username, title, submitdate, solution, isSolved) values(?, ?, ?, ?, ?)", username, title, static_cast<int>(std::time(NULL)), program, "true");
+
               res.set_content(outjson.dump(), "application/json");
               return ;
             } else {
@@ -529,7 +542,7 @@ int main() {
               return ;
             }
           } else {
-            outjson["message"] = "Solution failed to compile";
+            outjson["message"] = compileResult;
             res.set_content(outjson.dump(), "application/json");
             return ;
           }
@@ -687,8 +700,17 @@ int main() {
     nlohmann::json j = nlohmann::json::parse(req.body);
     std::string username = j["username"];
     std::string sessionid = j["sessionid"];
-    Sqlite::sqliteExecute(conn, "delete from sessions where username = ? and sessionid = ?", username, sessionid);
-    res.set_content("{\"status\":\"success\"}", "application/json");
+    for (auto row: Sqlite::SqliteStatement(conn, "select sessionid from sessions where username = ?", username)) {
+      if (!verify_password(sessionid, row.getString(0))) {
+        continue ;
+      } else {
+        std::cout << "Deleting sessionid..." << std::endl;
+        Sqlite::sqliteExecute(conn, "delete from sessions where username = ? and sessionid = ?", username, row.getString(0));
+        res.set_content("{\"status\":\"success\"}", "application/json");
+        return;
+      }
+    }
+    res.set_content("{\"status\":\"failed\"}", "application/json");
   });
 
   svr.listen("localhost", 8000);
