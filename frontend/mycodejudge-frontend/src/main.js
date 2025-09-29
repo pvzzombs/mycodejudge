@@ -1,4 +1,6 @@
 (function () {
+  var location = window.location.protocol + "//" + window.location.hostname + ":8000";
+
   var editor = ace.edit("editor");
   editor.setTheme("ace/theme/monokai");
   editor.session.setMode("ace/mode/c_cpp");
@@ -16,7 +18,7 @@
     Swal.fire({
       title: "Please wait..."
     })
-    axios.post("http://localhost:8000/postsafe", {
+    axios.post(location + "/postsafe", {
       post: editor.getValue(),
       input: document.getElementById("text-input").value,
       lang: lang
@@ -114,7 +116,7 @@
     var item = currentProblemVar;
     currentProblemSolved = false;
     // console.log(item);
-    axios.post("http://localhost:8000/submitcheck", {
+    axios.post(location + "/submitcheck", {
       username: localStorage.getItem("username"),
       sessionid: localStorage.getItem("sessionid"),
       title: item.title,
@@ -171,7 +173,8 @@
       alert("Blank");
       return;
     }
-    axios.post("http://localhost:8000/login", {
+    // alert(location + "/login");
+    axios.post(location + "/login", {
       username,
       password
     }).then(function (r) {
@@ -194,7 +197,7 @@
       alert("Blank");
       return;
     };
-    axios.post("http://localhost:8000/register", {
+    axios.post(location + "/register", {
       username,
       password
     }).then(function (r) {
@@ -239,7 +242,7 @@
   }
 
   document.getElementById("problemSubmit").onclick = function (e) {
-    axios.post("http://localhost:8000/postproblem", {
+    axios.post(location + "/postproblem", {
       admin: document.getElementById("admin-name").value,
       password: document.getElementById("admin-password").value,
       title: document.getElementById("ptitle").value,
@@ -259,6 +262,84 @@
     });
   }
 
+  function showCode(code) {
+    return function() {
+      Swal.fire({
+        html: '<div id="temp-code-view" style="height: 200px"></div>',
+        didOpen: function() {
+          var editor = ace.edit("temp-code-view");
+          editor.setTheme("ace/theme/monokai");
+          editor.session.setMode("ace/mode/c_cpp");
+          editor.session.setTabSize(2)
+          editor.session.setUseSoftTabs(true);
+          document.getElementById('temp-code-view').style.fontSize = '12px';
+          editor.setValue(code);
+          // alert(code);
+        }
+      });
+    };
+  }
+
+  function showAdminViewLists(arr) {
+    var list = document.getElementById("view-list");
+    list.innerHTML = ""; // clear old content
+
+    for (var i = 0; i < arr.length; i++) {
+      // Outer card
+      var el = document.createElement("div");
+      el.className = "card mb-3 shadow-sm";
+
+      // Card body
+      var cardBody = document.createElement("div");
+      cardBody.className = "card-body d-flex justify-content-between align-items-center";
+
+      // Info section
+      var infoDiv = document.createElement("div");
+
+      var elName = document.createElement("h6");
+      elName.className = "card-subtitle mb-1 text-muted";
+      elName.innerText = "👤 " + arr[i].username;
+
+      var elTitle = document.createElement("h5");
+      elTitle.className = "card-title mb-1";
+      elTitle.innerText = arr[i].title;
+
+      var elDate = document.createElement("small");
+      elDate.className = "text-secondary";
+      elDate.innerText =
+        "📅 " + new Date(parseInt(arr[i].submitdate) * 1000).toLocaleString();
+
+      infoDiv.appendChild(elTitle);
+      infoDiv.appendChild(elName);
+      infoDiv.appendChild(elDate);
+
+      // Button
+      var btn = document.createElement("button");
+      btn.className = "btn btn-sm btn-outline-primary";
+      btn.innerText = "View Solution";
+      btn.onclick = showCode(arr[i].solution);
+
+      // Put together
+      cardBody.appendChild(infoDiv);
+      cardBody.appendChild(btn);
+      el.appendChild(cardBody);
+      list.appendChild(el);
+    }
+  }
+
+  document.getElementById("v-submit").onclick = function (e) {
+    axios.post(location + "/view", {
+      admin: document.getElementById("v-admin").value,
+      password: document.getElementById("v-pass").value,
+    }).then(function(r) {
+      if (r.data.status == "success") {
+        showAdminViewLists(r.data.list);
+      } else {
+        alert("Failed to fetch admin lists");
+      }
+    });
+  }
+
   function gotoMainWindow(obj) {
     return function () {
       // localStorage.setItem("currentProblem", JSON.stringify(obj));
@@ -274,7 +355,7 @@
     // var arr = JSON.parse(localStorage.getItem("problems"));
     var username = localStorage.getItem("username");
     var sessionid = localStorage.getItem("sessionid");
-    axios.post("http://localhost:8000/getproblems", {
+    axios.post(location + "/getproblems", {
       username,
       sessionid
     }).then(function (r) {
@@ -326,7 +407,7 @@
   }
 
   document.getElementById("delete-problem-button").onclick = function (e) {
-    axios.post("http://localhost:8000/deleteproblems", {
+    axios.post(location + "/deleteproblems", {
       admin: document.getElementById("d-admin-name").value,
       password: document.getElementById("d-admin-pass").value
     }).then(function (r) {
@@ -346,6 +427,7 @@
     document.getElementById("probList").style.display = "none";
     document.getElementById("problem-deleter").style.display = "none";
     document.getElementById("submissions").style.display = "none";
+    document.getElementById("view").style.display = "none";
   }
 
   function addLogoutButton() {
@@ -354,7 +436,7 @@
     btn.className = "btn btn-outline-light ms-auto"; // light button, aligned right
     btn.value = "🚪 Logout";
     btn.onclick = function () {
-      axios.post("http://localhost:8000/logout", {
+      axios.post(location + "/logout", {
         username: localStorage.getItem("username"),
         sessionid: localStorage.getItem("sessionid")
       }).then(function (r) {
@@ -373,7 +455,7 @@
     var elemList = document.getElementById("submitLists");
     elemList.innerHTML = ""; // clear old entries
 
-    axios.get("http://localhost:8000/getsubmissions").then(function (r) {
+    axios.get(location + "/getsubmissions").then(function (r) {
       for (var i = 0; i < r.data.list.length; i++) {
         var submission = r.data.list[i];
 
@@ -433,7 +515,12 @@
     hideAll();
     document.getElementById("submissions").style.display = "block";
     showSubmissions();
-  })
+  });
+
+  router.on("/view", function () {
+    hideAll();
+    document.getElementById("view").style.display = "block";
+  });
 
   router.resolve();
 })();

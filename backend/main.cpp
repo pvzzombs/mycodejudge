@@ -385,6 +385,40 @@ int main() {
   //   res.set_content("{\"status\":\"failed\"}", "application/json");
   // });
 
+  svr.Options("/view", [](const httplib::Request &req, httplib::Response &res){
+    allowCORS(res);
+  });
+
+  svr.Post("/view", [&](const httplib::Request &req, httplib::Response &res){
+    allowCORS(res);
+    nlohmann::json j = nlohmann::json::parse(req.body);
+    std::string username = j["admin"];
+    std::string password = j["password"];
+
+    nlohmann::json out;
+    out["list"] = {};
+    out["status"] = "success";
+
+    for (auto row: Sqlite::SqliteStatement(conn, "select password from admin where username = ?", username)) {
+      if (verify_password(password, row.getString(0))) {
+        for (auto row: Sqlite::SqliteStatement(conn, "select username, title, submitdate, solution from solutions")) {
+          nlohmann::json j;
+          j["username"] = row.getString(0);
+          j["title"] = row.getString(1);
+          j["submitdate"] = row.getInt(2);
+          j["solution"] = row.getString(3);
+          out["list"].push_back(j);
+        }
+        res.set_content(out.dump(), "application/json");
+        std::cout << "Done!!!" << std::endl;
+        return;
+      }
+    }
+
+    out["status"] = "failed";
+    res.set_content(out.dump(), "application/json");
+  });
+
   svr.Options("/getsubmissions", [](const httplib::Request &req, httplib::Response &res){
     allowCORS(res);
   });
@@ -733,7 +767,7 @@ int main() {
     res.set_content("{\"status\":\"failed\"}", "application/json");
   });
 
-  svr.listen("localhost", 8000);
+  svr.listen("0.0.0.0", 8000);
 
   return 0;
 }
