@@ -302,7 +302,8 @@
 
       var elTitle = document.createElement("h5");
       elTitle.className = "card-title mb-1";
-      elTitle.innerText = arr[i].title;
+      // elTitle.innerText = arr[i].title;
+      elTitle.innerHTML = DOMPurify.sanitize(marked.parseInline(arr[i].title));
 
       var elDate = document.createElement("small");
       elDate.className = "text-secondary";
