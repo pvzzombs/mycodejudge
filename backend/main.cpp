@@ -457,17 +457,23 @@ int main() {
     std::string compileResult = "";
     std::string runResult = "";
     std::string name = OUTPUTLOCATION + generateFileName();
-    while(isFileExists(name)) {
-      name = OUTPUTLOCATION + generateFileName();
-    }
+    std::string ext;
     std::string fileName = name;
-
     nlohmann::json outjson;
 
     if (lang == "cpp") {
-      fileName += ".cpp";
+      ext = ".cpp";
     } else if (lang == "c") {
-      fileName += ".c";
+      ext = ".c";
+    }
+
+    fileName += ext;
+    std::cout << "Name of source file is " << fileName << std::endl;
+
+    while(isFileExists(fileName)) {
+      name = OUTPUTLOCATION + generateFileName();
+      fileName = name + ext;
+      std::cout << "[Regen] Name of source file is " << fileName << std::endl;
     }
 
     std::cout << "Received..." << std::endl;
@@ -508,19 +514,24 @@ int main() {
     std::string runResult = "";
     std::string scopedname = "/home/" + generateFileName();
     std::string name = FAKESYSTEMLOCATION + scopedname;
-
-    while(isFileExists(name)) {
-      scopedname = "/home/" + generateFileName();
-      name = FAKESYSTEMLOCATION + scopedname;
-    }
+    std::string ext;
     std::string fileName = name;
 
     nlohmann::json outjson;
 
     if (lang == "cpp") {
-      fileName += ".cpp";
+      ext = ".cpp";
     } else if (lang == "c") {
-      fileName += ".c";
+      ext = ".c";
+    }
+
+    fileName += ext;
+
+    std::cout << "Name of source file is " << fileName << std::endl;
+    while(isFileExists(fileName)) {
+      name = OUTPUTLOCATION + generateFileName();
+      fileName = name + ext;
+      std::cout << "[Regen] Name of source file is " << fileName << std::endl;
     }
 
     std::cout << "Received..." << std::endl;
@@ -562,12 +573,8 @@ int main() {
     std::string compileResult = "";
     std::string runResult = "";
     std::string scopedname = "/home/" + generateFileName();
+    std::string ext;
     std::string name = FAKESYSTEMLOCATION + scopedname;
-
-    while(isFileExists(name)) {
-      scopedname = "/home/" + generateFileName();
-      name = FAKESYSTEMLOCATION + scopedname;
-    }
     
     std::string fileName = name;
 
@@ -580,9 +587,20 @@ int main() {
       } else {
         for (auto row2: Sqlite::SqliteStatement(conn, "select testcases, answers from problems where title = ?", title)) {
           if (lang == "cpp") {
-            fileName += ".cpp";
+            ext = ".cpp";
           } else if (lang == "c") {
-            fileName += ".c";
+            ext = ".c";
+          }
+
+          fileName += ext;
+
+          std::cout << "Name of source file is " << fileName << std::endl;
+
+          while(isFileExists(fileName)) {
+            scopedname = "/home/" + generateFileName();
+            name = FAKESYSTEMLOCATION + scopedname;
+            fileName = name + ext;
+            std::cout << "[Regen] Name of source file is " << fileName << std::endl;
           }
 
           std::cout << "Received..." << std::endl;
