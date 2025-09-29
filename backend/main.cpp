@@ -333,6 +333,11 @@ std::string parseStringWithEscapes(std::string str) {
   return out;
 }
 
+bool isFileExists(std::string name) {
+  std::ifstream f(name);
+  return f.good();
+}
+
 int main() {
   if (sodium_init() < 0) {
     std::cout << "libsodium not working" << std::endl;
@@ -452,6 +457,9 @@ int main() {
     std::string compileResult = "";
     std::string runResult = "";
     std::string name = OUTPUTLOCATION + generateFileName();
+    while(isFileExists(name)) {
+      name = OUTPUTLOCATION + generateFileName();
+    }
     std::string fileName = name;
 
     nlohmann::json outjson;
@@ -500,6 +508,11 @@ int main() {
     std::string runResult = "";
     std::string scopedname = "/home/" + generateFileName();
     std::string name = FAKESYSTEMLOCATION + scopedname;
+
+    while(isFileExists(name)) {
+      scopedname = "/home/" + generateFileName();
+      name = FAKESYSTEMLOCATION + scopedname;
+    }
     std::string fileName = name;
 
     nlohmann::json outjson;
@@ -550,6 +563,12 @@ int main() {
     std::string runResult = "";
     std::string scopedname = "/home/" + generateFileName();
     std::string name = FAKESYSTEMLOCATION + scopedname;
+
+    while(isFileExists(name)) {
+      scopedname = "/home/" + generateFileName();
+      name = FAKESYSTEMLOCATION + scopedname;
+    }
+    
     std::string fileName = name;
 
     nlohmann::json outjson;
