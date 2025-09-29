@@ -491,6 +491,17 @@
 
   router.on("/", function () {
     hideAll();
+
+    axios.get(location + "/status").then(function (r) {
+      console.log(r.data);
+    }).catch(function(e) {
+      Swal.fire({
+        icon: "error",
+        title: "Error!",
+        text: "Cannot reach the backend!"
+      });
+    });
+
     // Entry point
     if (localStorage.getItem("sessionid") != null) {
       document.getElementById("probList").style.display = "block";

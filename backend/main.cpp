@@ -361,34 +361,18 @@ int main() {
 
   std::cout << "Running..." << std::endl;
 
-  // svr.Options("/submitsolution", [](const httplib::Request &req, httplib::Response &res){
-  //   allowCORS(res);
-  // });
+  svr.Options("/status", [](const httplib::Request &req, httplib::Response &res){
+    allowCORS(res);
+  });
 
-  // svr.Post("/submitsolution", [&](const httplib::Request &req, httplib::Response &res){
-  //   allowCORS(res);
-  //   nlohmann::json j = nlohmann::json::parse(req.body);
-  //   std::string username = j["username"];
-  //   std::cout << "Username is " << username << std::endl;
-  //   std::string sessionid = j["sessionid"];
-  //   std::string title = j["title"];
-  //   std::string solution = j["solution"];
-  //   std::string solndate = j["submitdate"];
-  //   std::string solved = j["isSolved"];
-
-  //   for (auto row: Sqlite::SqliteStatement(conn, "select sessionid from sessions where username = ?", username)) {
-  //     if (verify_password(sessionid, row.getString(0))) {
-  //       Sqlite::sqliteExecute(conn, "insert into solutions(username, title, submitdate, solution, isSolved) values(?, ?, ?, ?, ?)", username, title, solndate, solution, solved);
-
-  //       std::cout << "Solution submit success!" << std::endl;
-  //       res.set_content("{\"status\":\"success\"}", "application/json");
-  //       return ;
-  //     }
-  //   }
-
-  //   std::cout << "Solution submit failed!" << std::endl;
-  //   res.set_content("{\"status\":\"failed\"}", "application/json");
-  // });
+  svr.Get("/status", [&](const httplib::Request &req, httplib::Response &res){
+    allowCORS(res);
+    nlohmann::json out;
+    out["status"] = "success";
+    out["message"] = "Backend successfully reached!";
+    res.set_content(out.dump(), "application/json");
+    std::cout << "Done!!!" << std::endl;
+  });
 
   svr.Options("/view", [](const httplib::Request &req, httplib::Response &res){
     allowCORS(res);
