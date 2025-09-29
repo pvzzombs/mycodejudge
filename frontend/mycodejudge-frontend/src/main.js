@@ -346,8 +346,8 @@
       currentProblemVar = obj;
       document.getElementById("probList").style.display = "none";
       document.getElementById("main-div").style.display = "block";
-      document.getElementById("mtitle").innerText = obj.title;
-      document.getElementById("mdesc").innerText = obj.desc;
+      document.getElementById("mtitle").innerHTML = DOMPurify.sanitize(marked.parse(obj.title));
+      document.getElementById("mdesc").innerHTML = DOMPurify.sanitize(marked.parse(obj.desc));
     };
   }
 
@@ -374,7 +374,7 @@
           // Title
           var d = document.createElement("p");
           d.className = "mb-0 fw-semibold"; // no margin + bold
-          d.innerText = r.data.list[i].title;
+          d.innerHTML = DOMPurify.sanitize(marked.parseInline(r.data.list[i].title));
 
           // Button
           var btnEnter = document.createElement("button");
@@ -471,7 +471,7 @@
 
         var eTitle = document.createElement("span");
         eTitle.className = "text-dark mx-3 flex-grow-1";
-        eTitle.innerText = submission.title;
+        eTitle.innerHTML = DOMPurify.sanitize(marked.parseInline(submission.title));
 
         var eDate = document.createElement("span");
         eDate.className = "text-muted small";

@@ -35,7 +35,7 @@
               Input
             </div>
             <div class="card-body">
-              <textarea id="text-input" class="form-control" rows="6" placeholder="Enter your input here"></textarea>
+              <textarea id="text-input" class="form-control font-monospace" rows="6" placeholder="Enter your input here"></textarea>
             </div>
           </div>
 
@@ -44,7 +44,7 @@
               Output
             </div>
             <div class="card-body">
-              <textarea id="output" class="form-control bg-light" rows="6" placeholder="Program output will appear here"
+              <textarea id="output" class="form-control bg-light font-monospace" rows="6" placeholder="Program output will appear here"
                 readonly></textarea>
             </div>
           </div>
@@ -133,23 +133,23 @@
           <form id="problem-form" class="needs-validation" novalidate>
             <div class="mb-3">
               <label for="ptitle" class="form-label fw-semibold">Title</label>
-              <textarea id="ptitle" class="form-control" rows="1" placeholder="Enter problem title"></textarea>
+              <textarea id="ptitle" class="form-control font-monospace" rows="1" placeholder="Enter problem title"></textarea>
             </div>
 
             <div class="mb-3">
               <label for="pdesc" class="form-label fw-semibold">Description</label>
-              <textarea id="pdesc" class="form-control" rows="4" placeholder="Enter detailed description"></textarea>
+              <textarea id="pdesc" class="form-control font-monospace" rows="4" placeholder="Enter detailed description"></textarea>
             </div>
 
             <div class="row g-3">
               <div class="col-md-6">
                 <label for="ptestcases" class="form-label fw-semibold">Test Cases</label>
-                <textarea id="ptestcases" class="form-control" rows="5"
+                <textarea id="ptestcases" class="form-control font-monospace" rows="5"
                   placeholder="Enter sample test cases"></textarea>
               </div>
               <div class="col-md-6">
                 <label for="panswers" class="form-label fw-semibold">Answers</label>
-                <textarea id="panswers" class="form-control" rows="5" placeholder="Enter expected answers"></textarea>
+                <textarea id="panswers" class="form-control font-monospace" rows="5" placeholder="Enter expected answers"></textarea>
               </div>
             </div>
 
@@ -240,11 +240,13 @@
 
     </div>
   </div>
+  <script src="/src/js/purify.min.js"></script>
   <script src="/src/js/bootstrap.bundle.min.js"></script>
   <script src="/src/js/sweetalert2.min.js"></script>
   <script src="/src/js/navigo.min.js"></script>
   <script src="/src/js/axios.min.js"></script>
   <script src="/src/js/ace.js"></script>
+  <script src="/src/js/marked.min.js"></script>
   <script src="/src/main.js"></script>
 </body>
 
