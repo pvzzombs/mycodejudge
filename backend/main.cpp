@@ -5,16 +5,20 @@
 #include <cstdlib>
 #include <mutex>
 #include <vector>
+#include <thread>
 
 #include <sodium.h>
-#include "include/httplib.h"
-#include "include/json.hpp"
-#include "include/sqlitewrapper.hpp"
+#include <httplib.h>
+#include <json.hpp>
+#include <sqlitewrapper.hpp>
+#include <loguru.hpp>
 
 #define OUTPUTLOCATION "/home/guest/tempbin/"
 #define FAKESYSTEMLOCATION "/home/guest/fakesystem"
 #define ADMINNAME "admin"
 #define ADMINPASS "admin"
+
+bool GOEXIT = false;
 
 void allowCORS(httplib::Response &res) {
   res.set_header("Access-Control-Allow-Origin", "*");
@@ -338,9 +342,12 @@ bool isFileExists(std::string name) {
   return f.good();
 }
 
-int main() {
+int main(int argc, char * argv[]) {
+
+  loguru::init(argc, argv);
+
   if (sodium_init() < 0) {
-    std::cout << "libsodium not working" << std::endl;
+    LOG_F(ERROR, "libsodium not working");
     return 1;
   }
 
@@ -352,14 +359,14 @@ int main() {
   std::string dbname = OUTPUTLOCATION;
   dbname += "test.db";
 
-  Sqlite::SqliteConnection conn(dbname.c_str());
+  Sqlite::SqliteConnection mainconn(dbname.c_str());
 
   std::srand(std::time(NULL));
 
-  Sqlite::sqliteExecute(conn, "delete from admin");
-  Sqlite::sqliteExecute(conn, "insert into admin(username, password) values(?, ?)", adminName, adminPassword);
+  Sqlite::sqliteExecute(mainconn, "delete from admin");
+  Sqlite::sqliteExecute(mainconn, "insert into admin(username, password) values(?, ?)", adminName, adminPassword);
 
-  std::cout << "Running..." << std::endl;
+  LOG_F(INFO, "Running...");
 
   svr.Options("/status", [](const httplib::Request &req, httplib::Response &res){
     allowCORS(res);
@@ -371,7 +378,7 @@ int main() {
     out["status"] = "success";
     out["message"] = "Backend successfully reached!";
     res.set_content(out.dump(), "application/json");
-    std::cout << "Done!!!" << std::endl;
+    LOG_F(INFO, "Status successfully reached!");
   });
 
   svr.Options("/view", [](const httplib::Request &req, httplib::Response &res){
@@ -380,6 +387,7 @@ int main() {
 
   svr.Post("/view", [&](const httplib::Request &req, httplib::Response &res){
     allowCORS(res);
+    Sqlite::SqliteConnection conn(dbname.c_str());
     nlohmann::json j = nlohmann::json::parse(req.body);
     std::string username = j["admin"];
     std::string password = j["password"];
@@ -399,11 +407,12 @@ int main() {
           out["list"].push_back(j);
         }
         res.set_content(out.dump(), "application/json");
-        std::cout << "Done!!!" << std::endl;
+        LOG_F(INFO, "View request successful!");
         return;
       }
     }
 
+    LOG_F(ERROR, "View request failed!");
     out["status"] = "failed";
     res.set_content(out.dump(), "application/json");
   });
@@ -414,6 +423,7 @@ int main() {
 
   svr.Get("/getsubmissions", [&](const httplib::Request &req, httplib::Response &res){
     allowCORS(res);
+    Sqlite::SqliteConnection conn(dbname.c_str());
     nlohmann::json out;
     out["list"] = {};
     out["status"] = "success";
@@ -426,6 +436,7 @@ int main() {
     }
     res.set_content(out.dump(), "application/json");
     std::cout << "Done!!!" << std::endl;
+    LOG_F(INFO, "Get submission success!");
   });
 
   svr.Options("/post", [](const httplib::Request &req, httplib::Response &res){
@@ -452,15 +463,13 @@ int main() {
     }
 
     fileName += ext;
-    std::cout << "Name of source file is " << fileName << std::endl;
+    // std::cout << "Name of source file is " << fileName << std::endl;
 
     while(isFileExists(fileName)) {
       name = OUTPUTLOCATION + generateFileName();
       fileName = name + ext;
-      std::cout << "[Regen] Name of source file is " << fileName << std::endl;
+      // std::cout << "[Regen] Name of source file is " << fileName << std::endl;
     }
-
-    std::cout << "Received..." << std::endl;
 
     std::ofstream cppFile;
     cppFile.open(fileName);
@@ -481,7 +490,7 @@ int main() {
     outjson["result"] = runResult;
 
     res.set_content(outjson.dump(), "application/json");
-    std::cout << "Done!!!" << std::endl;
+    LOG_F(INFO, "Done!");
   });
 
   svr.Options("/postsafe", [](const httplib::Request &req, httplib::Response &res){
@@ -511,14 +520,12 @@ int main() {
 
     fileName += ext;
 
-    std::cout << "Name of source file is " << fileName << std::endl;
+    // std::cout << "Name of source file is " << fileName << std::endl;
     while(isFileExists(fileName)) {
       name = OUTPUTLOCATION + generateFileName();
       fileName = name + ext;
-      std::cout << "[Regen] Name of source file is " << fileName << std::endl;
+      // std::cout << "[Regen] Name of source file is " << fileName << std::endl;
     }
-
-    std::cout << "Received..." << std::endl;
 
     std::ofstream cppFile;
     cppFile.open(fileName);
@@ -539,7 +546,7 @@ int main() {
     outjson["result"] = runResult;
 
     res.set_content(outjson.dump(), "application/json");
-    std::cout << "Done!!!" << std::endl;
+    LOG_F(INFO, "Done!");
   });
 
   svr.Options("/submitcheck", [](const httplib::Request &req, httplib::Response &res){
@@ -548,6 +555,7 @@ int main() {
 
   svr.Post("/submitcheck", [&](const httplib::Request &req, httplib::Response &res){
     allowCORS(res);
+    Sqlite::SqliteConnection conn(dbname.c_str());
     nlohmann::json j = nlohmann::json::parse(req.body);
     std::string username = j["username"];
     std::string sessionid = j["sessionid"];
@@ -578,16 +586,14 @@ int main() {
 
           fileName += ext;
 
-          std::cout << "Name of source file is " << fileName << std::endl;
+          // std::cout << "Name of source file is " << fileName << std::endl;
 
           while(isFileExists(fileName)) {
             scopedname = "/home/" + generateFileName();
             name = FAKESYSTEMLOCATION + scopedname;
             fileName = name + ext;
-            std::cout << "[Regen] Name of source file is " << fileName << std::endl;
+            // std::cout << "[Regen] Name of source file is " << fileName << std::endl;
           }
-
-          std::cout << "Received..." << std::endl;
 
           std::ofstream sourceFile;
           sourceFile.open(fileName);
@@ -610,15 +616,18 @@ int main() {
               Sqlite::sqliteExecute(conn, "insert into solutions(username, title, submitdate, solution, isSolved) values(?, ?, ?, ?, ?)", username, title, static_cast<int>(std::time(NULL)), program, "true");
 
               res.set_content(outjson.dump(), "application/json");
+              LOG_F(INFO, "Solution accepted!");
               return ;
             } else {
               outjson["message"] = "Solution not accepted";
               res.set_content(outjson.dump(), "application/json");
+              LOG_F(INFO, "Solution not accepted!");
               return ;
             }
           } else {
             outjson["message"] = compileResult;
             res.set_content(outjson.dump(), "application/json");
+            LOG_F(ERROR, "Compilation error/s!");
             return ;
           }
         }
@@ -628,6 +637,7 @@ int main() {
 
     outjson["message"] = "Invalid username or sessionid";
     res.set_content(outjson.dump(), "application/json");
+    LOG_F(ERROR, "Invalid username or sessionid!");
   });
 
   svr.Options("/deleteproblems", [](const httplib::Request &req, httplib::Response &res){
@@ -636,6 +646,7 @@ int main() {
 
   svr.Post("/deleteproblems", [&](const httplib::Request &req, httplib::Response &res){
     allowCORS(res);
+    Sqlite::SqliteConnection conn(dbname.c_str());
     nlohmann::json j = nlohmann::json::parse(req.body);
     std::string username = j["admin"];
     std::string password = j["password"];
@@ -643,12 +654,12 @@ int main() {
       if (verify_password(password, row.getString(0))) {
         Sqlite::sqliteExecute(conn, "delete from problems");
 
-        std::cout << "All problems deleted" << std::endl;
+        LOG_F(INFO, "All problems deleted!");
         res.set_content("{\"status\":\"success\"}", "application/json");
         return ;
       }
     }
-    std::cout << "Deleting problems failed" << std::endl;
+    LOG_F(ERROR, "Deleting problems failed!");
     res.set_content("{\"status\":\"failed\"}", "application/json");
   });
 
@@ -658,6 +669,7 @@ int main() {
 
   svr.Post("/getproblems", [&](const httplib::Request &req, httplib::Response &res){
     allowCORS(res);
+    Sqlite::SqliteConnection conn(dbname.c_str());
     nlohmann::json j = nlohmann::json::parse(req.body);
     std::string username = j["username"];
     std::string sessionid = j["sessionid"];
@@ -677,12 +689,12 @@ int main() {
         p["desc"] = problem.getString(1);
         out["list"].push_back(p);
       }
-      std::cout << "Problem request success" << std::endl;
+      LOG_F(INFO, "Problem request success!");
       res.set_content(out.dump(), "application/json");
       return ;
     }
 
-    std::cout << "Problem request failed" << std::endl;
+    LOG_F(ERROR, "Problem request failed!");
     res.set_content("{\"status\":\"failed\"}", "application/json");
     return ;
   });
@@ -693,6 +705,7 @@ int main() {
 
   svr.Post("/postproblem", [&](const httplib::Request &req, httplib::Response &res){
     allowCORS(res);
+    Sqlite::SqliteConnection conn(dbname.c_str());
     nlohmann::json j = nlohmann::json::parse(req.body);
     std::string username = j["admin"];
     std::string password = j["password"];
@@ -705,12 +718,12 @@ int main() {
       if (verify_password(password, row.getString(0))) {
         Sqlite::sqliteExecute(conn, "insert into problems(title, description, testcases, answers) values(?, ?, ?, ?)", title, description, testcases, answers);
 
-        std::cout << "Problem posted" << std::endl;
+        LOG_F(INFO, "Problem posted!");
         res.set_content("{\"status\":\"success\"}", "application/json");
         return ;
       }
     }
-    std::cout << "Problem error" << std::endl;
+    LOG_F(ERROR, "Problem error!");
     res.set_content("{\"status\":\"failed\"}", "application/json");
   });
 
@@ -720,6 +733,7 @@ int main() {
 
   svr.Post("/register", [&](const httplib::Request &req, httplib::Response &res){
     allowCORS(res);
+    Sqlite::SqliteConnection conn(dbname.c_str());
     nlohmann::json j = nlohmann::json::parse(req.body);
     std::string username = j["username"];
     std::string password = hash_password(j["password"]);
@@ -743,6 +757,7 @@ int main() {
 
   svr.Post("/login", [&](const httplib::Request &req, httplib::Response &res){
     allowCORS(res);
+    Sqlite::SqliteConnection conn(dbname.c_str());
     nlohmann::json j = nlohmann::json::parse(req.body);
     std::string username = j["username"];
     std::string password = j["password"];
@@ -753,7 +768,7 @@ int main() {
         std::string sessionid = generateSessionID();
         std::string sessionidhash = hash_password(sessionid);
         Sqlite::sqliteExecute(conn, "insert into sessions(username, sessionid) values (?, ?)", username, sessionidhash);
-        std::cout << "Login Success!" << std::endl;
+        LOG_F(INFO, "Login Success!");
         nlohmann::json out;
         out["status"] = "success";
         out["username"] = username;
@@ -762,7 +777,7 @@ int main() {
         return;
       }
     }
-    std::cout << "Login failed" << std::endl;
+    LOG_F(ERROR, "Login failed!");
     res.set_content("{\"status\":\"failed\"}", "application/json");
   });
 
@@ -772,6 +787,7 @@ int main() {
 
   svr.Post("/logout", [&](const httplib::Request &req, httplib::Response &res){
     allowCORS(res);
+    Sqlite::SqliteConnection conn(dbname.c_str());
     nlohmann::json j = nlohmann::json::parse(req.body);
     std::string username = j["username"];
     std::string sessionid = j["sessionid"];
@@ -779,16 +795,31 @@ int main() {
       if (!verify_password(sessionid, row.getString(0))) {
         continue ;
       } else {
-        std::cout << "Deleting sessionid..." << std::endl;
+        LOG_F(INFO, "Deleting sessionid...");
         Sqlite::sqliteExecute(conn, "delete from sessions where username = ? and sessionid = ?", username, row.getString(0));
         res.set_content("{\"status\":\"success\"}", "application/json");
         return;
       }
     }
+    LOG_F(ERROR, "Error logging out!");
     res.set_content("{\"status\":\"failed\"}", "application/json");
   });
 
-  svr.listen("0.0.0.0", 8000);
+  std::thread t1([&]() {
+    std::string q;
+    std::getline(std::cin, q);
+    if (q.size() > 0 && q.at(0) == 'q') {
+      GOEXIT = true;
+      svr.stop();
+    }
+  });
+
+  std::thread t2([&]() {
+    svr.listen("0.0.0.0", 8000);
+  });
+
+  t1.join();
+  t2.join();
 
   return 0;
 }
