@@ -18,8 +18,6 @@
 #define ADMINNAME "admin"
 #define ADMINPASS "admin"
 
-bool GOEXIT = false;
-
 void allowCORS(httplib::Response &res) {
   res.set_header("Access-Control-Allow-Origin", "*");
   res.set_header("Allow", "GET, POST, HEAD, OPTIONS");
@@ -805,17 +803,23 @@ int main(int argc, char * argv[]) {
     res.set_content("{\"status\":\"failed\"}", "application/json");
   });
 
+  bool GOEXIT = false;
+
   std::thread t1([&]() {
     std::string q;
-    std::getline(std::cin, q);
-    if (q.size() > 0 && q.at(0) == 'q') {
-      GOEXIT = true;
-      svr.stop();
-    }
+    do {
+      std::getline(std::cin, q);
+      if (q.size() > 0 && q.at(0) == 'q') {
+        GOEXIT = true;
+        svr.stop();
+        LOG_F(INFO, "Server stopped...");
+      }
+    } while (!GOEXIT);
   });
 
   std::thread t2([&]() {
     svr.listen("0.0.0.0", 8000);
+    LOG_F(INFO, "Server is stopped!");
   });
 
   t1.join();
