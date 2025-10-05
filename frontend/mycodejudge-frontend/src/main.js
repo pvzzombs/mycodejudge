@@ -1,6 +1,16 @@
 (function () {
   var location = window.location.protocol + "//" + window.location.hostname + ":8000";
 
+  axios.get(location + "/status").then(function (r) {
+    console.log(r.data);
+  }).catch(function(e) {
+    Swal.fire({
+      icon: "error",
+      title: "Error!",
+      text: "Cannot reach the backend!"
+    });
+  });
+
   var editor = ace.edit("editor");
   editor.setTheme("ace/theme/monokai");
   editor.session.setMode("ace/mode/c_cpp");
@@ -493,16 +503,6 @@
   router.on("/", function () {
     hideAll();
 
-    axios.get(location + "/status").then(function (r) {
-      console.log(r.data);
-    }).catch(function(e) {
-      Swal.fire({
-        icon: "error",
-        title: "Error!",
-        text: "Cannot reach the backend!"
-      });
-    });
-
     // Entry point
     if (localStorage.getItem("sessionid") != null) {
       document.getElementById("probList").style.display = "block";
@@ -532,6 +532,13 @@
   router.on("/view", function () {
     hideAll();
     document.getElementById("view").style.display = "block";
+  });
+
+  router.notFound(function () {
+    Swal.fire({
+      icon: "error",
+      text: "Page does not exist!"
+    })
   });
 
   router.resolve();

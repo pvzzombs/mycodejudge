@@ -364,7 +364,7 @@ int main(int argc, char * argv[]) {
   Sqlite::sqliteExecute(mainconn, "delete from admin");
   Sqlite::sqliteExecute(mainconn, "insert into admin(username, password) values(?, ?)", adminName, adminPassword);
 
-  LOG_F(INFO, "Running...");
+  LOG_F(INFO, "Running..., press q then press enter to exit.");
 
   svr.Options("/status", [](const httplib::Request &req, httplib::Response &res){
     allowCORS(res);
@@ -651,8 +651,9 @@ int main(int argc, char * argv[]) {
     for (auto row: Sqlite::SqliteStatement(conn, "select password from admin where username = ?", username)) {
       if (verify_password(password, row.getString(0))) {
         Sqlite::sqliteExecute(conn, "delete from problems");
+        Sqlite::sqliteExecute(conn, "delete from solutions");
 
-        LOG_F(INFO, "All problems deleted!");
+        LOG_F(INFO, "All problems and solutions deleted!");
         res.set_content("{\"status\":\"success\"}", "application/json");
         return ;
       }
