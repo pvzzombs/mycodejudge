@@ -6,12 +6,15 @@
 #include <mutex>
 #include <vector>
 #include <thread>
+#include <chrono>
+#include <sstream>
 
 #include <sodium.h>
 #include <httplib.h>
 #include <json.hpp>
 #include <sqlitewrapper.hpp>
 #include <loguru.hpp>
+#include "nrp.hpp"
 
 #define OUTPUTLOCATION "/home/guest/tempbin/"
 #define FAKESYSTEMLOCATION "/home/guest/fakesystem"
@@ -359,6 +362,8 @@ int main(int argc, char * argv[]) {
 
   Sqlite::SqliteConnection mainconn(dbname.c_str());
 
+  NRP nrp;
+
   std::srand(std::time(NULL));
 
   Sqlite::sqliteExecute(mainconn, "delete from admin");
@@ -495,7 +500,7 @@ int main(int argc, char * argv[]) {
     allowCORS(res);
   });
 
-  svr.Post("/postsafe", [](const httplib::Request &req, httplib::Response &res){
+  svr.Post("/postsafe", [&](const httplib::Request &req, httplib::Response &res){
     allowCORS(res);
     nlohmann::json j = nlohmann::json::parse(req.body);
     std::string program = j["post"];
@@ -531,14 +536,49 @@ int main(int argc, char * argv[]) {
     cppFile.close();
     //compile
     int r = 0;
-    if (lang == "cpp") {
-      r = compileCppNoParsedEndline(name, compileResult);
-    } else if (lang == "c") {
-      r = compileCNoParsedEndline(name, compileResult);
+    // if (lang == "cpp") {
+    //   r = compileCppNoParsedEndline(name, compileResult);
+    // } else if (lang == "c") {
+    //   r = compileCNoParsedEndline(name, compileResult);
+    // }
+    // if (r) {
+    //   runChrootNoParsedEndline(scopedname, inputText, runResult);
+    // } 
+
+    std::ofstream inputFile;
+    inputFile.open(name + ".txt");
+    inputFile << inputText;
+    inputFile.close();
+
+    nrp.arrMutex.lock();
+    nrp.arr.push_back(fileName);
+    nrp.arrMutex.unlock();
+
+    while (!nrp.isAvailable(name)) {
+      std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
-    if (r) {
-      runChrootNoParsedEndline(scopedname, inputText, runResult);
-    } 
+
+    std::string line;
+    std::ifstream fileResult;
+    std::stringstream ss;
+
+    fileResult.open(name + ".w");
+    ss << fileResult.rdbuf();
+    fileResult.close();
+
+    compileResult = ss.str();
+
+    ss.str("");
+    ss.clear();
+
+    fileResult.open(name + ".result");
+    ss << fileResult.rdbuf();
+    // std::cout << "Result: " << fileResult.rdbuf() << std::endl;
+    fileResult.close();
+
+    runResult = ss.str();
+
+    // std::cout << "Result from variable: " << runResult << std::endl;
 
     outjson["errors"] = compileResult;
     outjson["result"] = runResult;
@@ -597,37 +637,99 @@ int main(int argc, char * argv[]) {
           sourceFile.open(fileName);
           sourceFile << program;
           sourceFile.close();
-          //compile
-          int r = 0;
-          if (lang == "cpp") {
-            r = compileCppNoParsedEndline(name, compileResult);
-          } else if (lang == "c") {
-            r = compileCNoParsedEndline(name, compileResult);
+
+          std::ofstream inputFile;
+          inputFile.open(name + ".txt");
+          inputFile << row2.getString(0);
+          inputFile.close();
+
+          nrp.arrMutex.lock();
+          nrp.arr.push_back(fileName);
+          nrp.arrMutex.unlock();
+
+          while (!nrp.isAvailable(name)) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
           }
-          if (r) {
-            runChrootNoParsedEndline(scopedname, row2.getString(0), runResult);
-            // std::string str = parseStringWithEscapes(row2.getString(1));
-            if (isAnswersMatch(runResult, row2.getString(1))) {
-              outjson["status"] = "success";
-              outjson["message"] = "Solution accepted";
 
-              Sqlite::sqliteExecute(conn, "insert into solutions(username, title, submitdate, solution, isSolved) values(?, ?, ?, ?, ?)", username, title, static_cast<int>(std::time(NULL)), program, "true");
+          std::string line;
+          std::ifstream fileResult;
+          std::stringstream ss;
 
-              res.set_content(outjson.dump(), "application/json");
-              LOG_F(INFO, "Solution accepted!");
-              return ;
-            } else {
-              outjson["message"] = "Solution not accepted";
-              res.set_content(outjson.dump(), "application/json");
-              LOG_F(INFO, "Solution not accepted!");
-              return ;
-            }
-          } else {
+          fileResult.open(name + ".w");
+          ss << fileResult.rdbuf();
+          fileResult.close();
+
+          compileResult = ss.str();
+
+          ss.str("");
+          ss.clear();
+
+          fileResult.open(name + ".result");
+          ss << fileResult.rdbuf();
+          // std::cout << "Result: " << fileResult.rdbuf() << std::endl;
+          fileResult.close();
+
+          runResult = ss.str();
+
+          // std::cout << "Result from variable: " << runResult << std::endl;
+
+          // outjson["errors"] = compileResult;
+          // outjson["result"] = runResult;
+
+          if (compileResult != "") {
             outjson["message"] = compileResult;
             res.set_content(outjson.dump(), "application/json");
             LOG_F(ERROR, "Compilation error/s!");
             return ;
           }
+
+          if (isAnswersMatch(runResult, row2.getString(1))) {
+            outjson["status"] = "success";
+            outjson["message"] = "Solution accepted";
+            Sqlite::sqliteExecute(conn, "insert into solutions(username, title, submitdate, solution, isSolved) values(?, ?, ?, ?, ?)", username, title, static_cast<int>(std::time(NULL)), program, "true");
+            res.set_content(outjson.dump(), "application/json");
+            LOG_F(INFO, "Solution accepted!");
+            return ;
+          } else {
+            outjson["message"] = "Solution not accepted";
+            res.set_content(outjson.dump(), "application/json");
+            LOG_F(INFO, "Solution not accepted!");
+            return ;
+          }
+
+          // //compile
+          // int r = 0;
+          // if (lang == "cpp") {
+          //   r = compileCppNoParsedEndline(name, compileResult);
+          // } else if (lang == "c") {
+          //   r = compileCNoParsedEndline(name, compileResult);
+          // }
+          // if (r) {
+          //   runChrootNoParsedEndline(scopedname, row2.getString(0), runResult);
+          //   // std::string str = parseStringWithEscapes(row2.getString(1));
+          //   if (isAnswersMatch(runResult, row2.getString(1))) {
+          //     outjson["status"] = "success";
+          //     outjson["message"] = "Solution accepted";
+
+          //     Sqlite::sqliteExecute(conn, "insert into solutions(username, title, submitdate, solution, isSolved) values(?, ?, ?, ?, ?)", username, title, static_cast<int>(std::time(NULL)), program, "true");
+
+          //     res.set_content(outjson.dump(), "application/json");
+          //     LOG_F(INFO, "Solution accepted!");
+          //     return ;
+          //   } else {
+          //     outjson["message"] = "Solution not accepted";
+          //     res.set_content(outjson.dump(), "application/json");
+          //     LOG_F(INFO, "Solution not accepted!");
+          //     return ;
+          //   }
+          // } else {
+          //   outjson["message"] = compileResult;
+          //   res.set_content(outjson.dump(), "application/json");
+          //   LOG_F(ERROR, "Compilation error/s!");
+          //   return ;
+          // }
+
+
         }
         break;
       }
@@ -812,6 +914,7 @@ int main(int argc, char * argv[]) {
       std::getline(std::cin, q);
       if (q.size() > 0 && q.at(0) == 'q') {
         GOEXIT = true;
+        nrp.quit.store(true);
         svr.stop();
         LOG_F(INFO, "Server stopped...");
       }
@@ -823,8 +926,13 @@ int main(int argc, char * argv[]) {
     LOG_F(INFO, "Server is stopped!");
   });
 
+  std::thread t3([&]() {
+    nrp.wait();
+  });
+
   t1.join();
   t2.join();
+  t3.join();
 
   return 0;
 }
