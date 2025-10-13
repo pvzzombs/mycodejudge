@@ -5,3 +5,5 @@ cd /sys/fs/cgroup
 mkdir guest
 cd guest
 echo 5M > memory.max
+echo 10 > pids.max
+echo 50000 100000 > cpu.max

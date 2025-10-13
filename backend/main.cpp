@@ -550,9 +550,14 @@ int main(int argc, char * argv[]) {
     inputFile << inputText;
     inputFile.close();
 
-    nrp.arrMutex.lock();
-    nrp.arr.push_back(fileName);
-    nrp.arrMutex.unlock();
+    // nrp.arrMutex.lock();
+    // nrp.arr.push_back(fileName);
+    // nrp.arrMutex.unlock();
+    {
+      std::unique_lock<std::mutex> lck(nrp.arrMutex);
+      nrp.arr.push_back(fileName);
+      nrp.cv.notify_one();
+    }
 
     while (!nrp.isAvailable(name)) {
       std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -643,9 +648,14 @@ int main(int argc, char * argv[]) {
           inputFile << row2.getString(0);
           inputFile.close();
 
-          nrp.arrMutex.lock();
-          nrp.arr.push_back(fileName);
-          nrp.arrMutex.unlock();
+          // nrp.arrMutex.lock();
+          // nrp.arr.push_back(fileName);
+          // nrp.arrMutex.unlock();
+          {
+            std::unique_lock<std::mutex> lck(nrp.arrMutex);
+            nrp.arr.push_back(fileName);
+            nrp.cv.notify_one();
+          }
 
           while (!nrp.isAvailable(name)) {
             std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -914,7 +924,11 @@ int main(int argc, char * argv[]) {
       std::getline(std::cin, q);
       if (q.size() > 0 && q.at(0) == 'q') {
         GOEXIT = true;
-        nrp.quit.store(true);
+        {
+          std::unique_lock<std::mutex> lck(nrp.arrMutex);
+          nrp.quit.store(true);
+          nrp.cv.notify_one();
+        }
         svr.stop();
         LOG_F(INFO, "Server stopped...");
       }

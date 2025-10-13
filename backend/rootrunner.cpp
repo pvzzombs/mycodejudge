@@ -4,6 +4,9 @@
 #include <thread>
 #include <vector>
 #include <atomic>
+#include <unistd.h>
+
+#include <loguru.hpp>
 
 #define OUTPUT_FILE "/home/guest/fakesystem/home/rout.txt"
 #define INPUT_FILE "/home/guest/fakesystem/home/rin.txt"
@@ -96,11 +99,21 @@ void runExecutable(std::string fileName) {
   }
 }
 
-int main() {
+int main(int argc, char * argv[]) {
   std::ofstream out;
   std::vector<std::string> fileNames;
   std::atomic<bool> quit;
+  uid_t euid = geteuid();
+
   quit.store(false);
+
+  loguru::init(argc, argv);
+
+  LOG_F(INFO, "Root runner started...");
+
+  if (euid != 0) {
+    LOG_F(ERROR, "Please run as root, continuing will cause errors!");
+  }
 
   std::thread t1([&]() {
     bool shouldExit = false;

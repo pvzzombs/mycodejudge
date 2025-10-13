@@ -5,6 +5,7 @@
 #include <chrono>
 #include <thread>
 #include <mutex>
+#include <condition_variable>
 
 #define OUTPUT_FILE "/home/guest/fakesystem/home/rout.txt"
 #define INPUT_FILE "/home/guest/fakesystem/home/rin.txt"
@@ -15,36 +16,36 @@ public:
   std::atomic<bool> quit;
   std::vector<std::string> arr;
   std::mutex arrMutex;
+  std::condition_variable cv;
   NRP(): quit(false) {
-  }
-  void timer() {
-    while (!quit.load()) {
-      std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    }
   }
   void wait() {
     while (!quit.load()) {
-      std::ifstream f;
-      std::string s;
-      f.open(OUTPUT_FILE);
-      if (f.is_open()) {
-        std::getline(f, s);
-        if (s == "ready") {
-          std::ofstream o;
-          // size_t n = arr.size();
-          // int i = 0;
-          o.open(INPUT_FILE, std::ios::app);
-          if (arr.size()) {
-            o << arr.front() << std::endl;
-            // i++;
-            arrMutex.lock();
-            arr.erase(arr.begin());
-            arrMutex.unlock();
-          }
-          o.close();
+      std::unique_lock<std::mutex> lck(arrMutex);
+      cv.wait(lck, [&]() {
+        return arr.size() || quit.load();
+      });
+      while (arr.size()) {
+        if (quit.load()) {
+          break;
         }
+        std::ifstream f;
+        std::string s;
+        f.open(OUTPUT_FILE);
+        if (f.is_open()) {
+          std::getline(f, s);
+          if (s == "ready") {
+            std::ofstream o;
+            // size_t n = arr.size();
+            // int i = 0;
+            o.open(INPUT_FILE, std::ios::app);
+            o << arr.front() << std::endl;
+            arr.erase(arr.begin());
+            o.close();
+          }
+        }
+        f.close();
       }
-      f.close();
     }
   }
 
