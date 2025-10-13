@@ -126,6 +126,9 @@
     var item = currentProblemVar;
     currentProblemSolved = false;
     // console.log(item);
+    Swal.fire({
+      text: "Please wait..."
+    });
     axios.post(location + "/submitcheck", {
       username: localStorage.getItem("username"),
       sessionid: localStorage.getItem("sessionid"),
