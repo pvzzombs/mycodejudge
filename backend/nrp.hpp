@@ -20,6 +20,9 @@ public:
   NRP(): quit(false) {
   }
   void wait() {
+    std::ofstream nro;
+    nro.open(INPUT_FILE);
+    nro.close();
     while (!quit.load()) {
       std::unique_lock<std::mutex> lck(arrMutex);
       cv.wait(lck, [&]() {
@@ -46,6 +49,7 @@ public:
         }
         f.close();
       }
+      // std::cout << "Ended" << std::endl;
     }
   }
 

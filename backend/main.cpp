@@ -343,6 +343,21 @@ bool isFileExists(std::string name) {
   return f.good();
 }
 
+void removeCodeFiles(std::string baseName, std::string sourceCodeName) {
+  std::string newName;
+  std::remove(sourceCodeName.c_str());
+  newName = baseName + ".out";
+  std::remove(newName.c_str());
+  newName = baseName + ".result";
+  std::remove(newName.c_str());
+  newName = baseName + ".txt";
+  std::remove(newName.c_str());
+  newName = baseName + ".w";
+  std::remove(newName.c_str());
+  newName = baseName + ".done";
+  std::remove(newName.c_str());
+}
+
 int main(int argc, char * argv[]) {
 
   loguru::init(argc, argv);
@@ -559,9 +574,13 @@ int main(int argc, char * argv[]) {
       nrp.cv.notify_one();
     }
 
+    // std::cout << "Before Done??????" << std::endl;
+
     while (!nrp.isAvailable(name)) {
       std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
+
+    // std::cout << "Done??????" << std::endl;
 
     std::string line;
     std::ifstream fileResult;
@@ -587,6 +606,8 @@ int main(int argc, char * argv[]) {
 
     outjson["errors"] = compileResult;
     outjson["result"] = runResult;
+
+    removeCodeFiles(name, fileName);
 
     res.set_content(outjson.dump(), "application/json");
     LOG_F(INFO, "Done!");
@@ -688,6 +709,7 @@ int main(int argc, char * argv[]) {
 
           if (compileResult != "") {
             outjson["message"] = compileResult;
+            removeCodeFiles(name, fileName);
             res.set_content(outjson.dump(), "application/json");
             LOG_F(ERROR, "Compilation error/s!");
             return ;
@@ -697,11 +719,13 @@ int main(int argc, char * argv[]) {
             outjson["status"] = "success";
             outjson["message"] = "Solution accepted";
             Sqlite::sqliteExecute(conn, "insert into solutions(username, title, submitdate, solution, isSolved) values(?, ?, ?, ?, ?)", username, title, static_cast<int>(std::time(NULL)), program, "true");
+            removeCodeFiles(name, fileName);
             res.set_content(outjson.dump(), "application/json");
             LOG_F(INFO, "Solution accepted!");
             return ;
           } else {
             outjson["message"] = "Solution not accepted";
+            removeCodeFiles(name, fileName);
             res.set_content(outjson.dump(), "application/json");
             LOG_F(INFO, "Solution not accepted!");
             return ;
