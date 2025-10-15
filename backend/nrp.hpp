@@ -7,8 +7,8 @@
 #include <mutex>
 #include <condition_variable>
 
-#define OUTPUT_FILE "/home/guest/fakesystem/home/rout.txt"
-#define INPUT_FILE "/home/guest/fakesystem/home/rin.txt"
+#define OUTPUT_FILE "/home/guest/fakesystem/home/sandbox/rout.txt"
+#define INPUT_FILE "/home/guest/fakesystem/home/sandbox/rin.txt"
 #define TEXT_DIR "/home/guest/fakesystem/home"
 
 class NRP {

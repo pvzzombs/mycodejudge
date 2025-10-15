@@ -8,8 +8,8 @@
 
 #include <loguru.hpp>
 
-#define OUTPUT_FILE "/home/guest/fakesystem/home/rout.txt"
-#define INPUT_FILE "/home/guest/fakesystem/home/rin.txt"
+#define OUTPUT_FILE "/home/guest/fakesystem/home/sandbox/rout.txt"
+#define INPUT_FILE "/home/guest/fakesystem/home/sandbox/rin.txt"
 #define FAKESYSTEMLOCATION "/home/guest/fakesystem"
 
 void compileSourceCode(std::string fileName) {
@@ -55,8 +55,8 @@ void runExecutable(std::string fileName) {
     std::string name = baseName.substr(fakesystempath.size(), baseName.size());
     // std::cout << "name: " << name << std::endl;
     // bash -c 'echo $$ > /sys/fs/cgroup/guest/cgroup.procs; /home/guest/a.out'
-    std::string cmd = "timeout 2s sh -c 'echo $$ > /sys/fs/cgroup/guest/cgroup.procs; chroot " FAKESYSTEMLOCATION " " + name + ".out < " + baseName + ".txt 2>&1'";
-    // std::cout << "command is " << cmd << std::endl;
+    std::string cmd = "timeout 2s sh -c 'echo $$ > /sys/fs/cgroup/guest/cgroup.procs; chroot " FAKESYSTEMLOCATION " /bin/su - sandbox -c '" + name + ".out' < " + baseName + ".txt 2>&1'";
+    std::cout << "command is " << cmd << std::endl;
     std::FILE * pipe = NULL;
     char buffer[128];
 
@@ -79,8 +79,8 @@ void runExecutable(std::string fileName) {
     std::string name = baseName.substr(fakesystempath.size(), baseName.size());
     // std::cout << "name: " << name << std::endl;
     // bash -c 'echo $$ > /sys/fs/cgroup/guest/cgroup.procs; /home/guest/a.out'
-    std::string cmd = "timeout 2s sh -c 'echo $$ > /sys/fs/cgroup/guest/cgroup.procs; chroot " FAKESYSTEMLOCATION " " + name + ".out < " + baseName + ".txt 2>&1'";
-    // std::cout << "command is " << cmd << std::endl;
+    std::string cmd = "timeout 2s sh -c 'echo $$ > /sys/fs/cgroup/guest/cgroup.procs; chroot " FAKESYSTEMLOCATION " /bin/su - sandbox -c '" + name + ".out' < " + baseName + ".txt 2>&1'";
+    std::cout << "command is " << cmd << std::endl;
     std::FILE * pipe = NULL;
     char buffer[128];
 

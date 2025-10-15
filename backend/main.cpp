@@ -20,6 +20,7 @@
 #define FAKESYSTEMLOCATION "/home/guest/fakesystem"
 #define ADMINNAME "admin"
 #define ADMINPASS "admin"
+#define FAKESYSTEMLOCATIONHOME "/home/sandbox/"
 
 void allowCORS(httplib::Response &res) {
   res.set_header("Access-Control-Allow-Origin", "*");
@@ -523,7 +524,7 @@ int main(int argc, char * argv[]) {
     std::string lang = j["lang"];
     std::string compileResult = "";
     std::string runResult = "";
-    std::string scopedname = "/home/" + generateFileName();
+    std::string scopedname = FAKESYSTEMLOCATIONHOME + generateFileName();
     std::string name = FAKESYSTEMLOCATION + scopedname;
     std::string ext;
     std::string fileName = name;
@@ -628,7 +629,7 @@ int main(int argc, char * argv[]) {
     std::string lang = j["lang"];
     std::string compileResult = "";
     std::string runResult = "";
-    std::string scopedname = "/home/" + generateFileName();
+    std::string scopedname = FAKESYSTEMLOCATIONHOME + generateFileName();
     std::string ext;
     std::string name = FAKESYSTEMLOCATION + scopedname;
     
@@ -653,7 +654,7 @@ int main(int argc, char * argv[]) {
           // std::cout << "Name of source file is " << fileName << std::endl;
 
           while(isFileExists(fileName)) {
-            scopedname = "/home/" + generateFileName();
+            scopedname = FAKESYSTEMLOCATIONHOME + generateFileName();
             name = FAKESYSTEMLOCATION + scopedname;
             fileName = name + ext;
             // std::cout << "[Regen] Name of source file is " << fileName << std::endl;
