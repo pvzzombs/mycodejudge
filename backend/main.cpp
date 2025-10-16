@@ -17,7 +17,7 @@
 #include "nrp.hpp"
 
 #define OUTPUTLOCATION "/home/guest/tempbin/"
-#define FAKESYSTEMLOCATION "/home/guest/fakesystem"
+#define FAKESYSTEMLOCATION "/mnt/sda2/fakesystem"
 #define ADMINNAME "admin"
 #define ADMINPASS "admin"
 #define FAKESYSTEMLOCATIONHOME "/home/sandbox/"

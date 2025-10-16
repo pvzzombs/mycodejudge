@@ -8,9 +8,9 @@
 
 #include <loguru.hpp>
 
-#define OUTPUT_FILE "/home/guest/fakesystem/home/sandbox/rout.txt"
-#define INPUT_FILE "/home/guest/fakesystem/home/sandbox/rin.txt"
-#define FAKESYSTEMLOCATION "/home/guest/fakesystem"
+#define OUTPUT_FILE "/mnt/sda2/fakesystem/home/sandbox/rout.txt"
+#define INPUT_FILE "/mnt/sda2/fakesystem/home/sandbox/rin.txt"
+#define FAKESYSTEMLOCATION "/mnt/sda2/fakesystem"
 
 void compileSourceCode(std::string fileName) {
   //detect code type:
