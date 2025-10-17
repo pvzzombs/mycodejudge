@@ -239,6 +239,7 @@
     Swal.fire({
       text: "C"
     });
+    editor.session.setMode("ace/mode/c_cpp");
   };
 
   document.getElementById("langcpp").onclick = function (e) {
@@ -247,6 +248,15 @@
     Swal.fire({
       text: "C++"
     });
+    editor.session.setMode("ace/mode/c_cpp");
+  }
+  document.getElementById("langjava").onclick = function (e) {
+    lang = "java";
+    console.log("java");
+    Swal.fire({
+      text: "Java"
+    });
+    editor.session.setMode("ace/mode/java");
   }
 
   document.getElementById("mback").onclick = function (e) {

@@ -20,7 +20,7 @@
 #define FAKESYSTEMLOCATION "/mnt/sda2/fakesystem"
 #define ADMINNAME "admin"
 #define ADMINPASS "admin"
-#define FAKESYSTEMLOCATIONHOME "/home/sandbox/"
+#define FAKESYSTEMLOCATIONHOME "/home/sandbox"
 
 void allowCORS(httplib::Response &res) {
   res.set_header("Access-Control-Allow-Origin", "*");
@@ -357,6 +357,8 @@ void removeCodeFiles(std::string baseName, std::string sourceCodeName) {
   std::remove(newName.c_str());
   newName = baseName + ".done";
   std::remove(newName.c_str());
+  newName = baseName + ".class";
+  std::remove(newName.c_str());
 }
 
 int main(int argc, char * argv[]) {
@@ -524,7 +526,7 @@ int main(int argc, char * argv[]) {
     std::string lang = j["lang"];
     std::string compileResult = "";
     std::string runResult = "";
-    std::string scopedname = FAKESYSTEMLOCATIONHOME + generateFileName();
+    std::string scopedname = FAKESYSTEMLOCATIONHOME "/" + generateFileName();
     std::string name = FAKESYSTEMLOCATION + scopedname;
     std::string ext;
     std::string fileName = name;
@@ -535,6 +537,8 @@ int main(int argc, char * argv[]) {
       ext = ".cpp";
     } else if (lang == "c") {
       ext = ".c";
+    } else if (lang == "java") {
+      ext = ".java";
     }
 
     fileName += ext;
@@ -629,7 +633,7 @@ int main(int argc, char * argv[]) {
     std::string lang = j["lang"];
     std::string compileResult = "";
     std::string runResult = "";
-    std::string scopedname = FAKESYSTEMLOCATIONHOME + generateFileName();
+    std::string scopedname = FAKESYSTEMLOCATIONHOME "/" + generateFileName();
     std::string ext;
     std::string name = FAKESYSTEMLOCATION + scopedname;
     
@@ -647,6 +651,8 @@ int main(int argc, char * argv[]) {
             ext = ".cpp";
           } else if (lang == "c") {
             ext = ".c";
+          } else if (lang == "java") {
+            ext = ".java";
           }
 
           fileName += ext;
@@ -654,7 +660,7 @@ int main(int argc, char * argv[]) {
           // std::cout << "Name of source file is " << fileName << std::endl;
 
           while(isFileExists(fileName)) {
-            scopedname = FAKESYSTEMLOCATIONHOME + generateFileName();
+            scopedname = FAKESYSTEMLOCATIONHOME "/" + generateFileName();
             name = FAKESYSTEMLOCATION + scopedname;
             fileName = name + ext;
             // std::cout << "[Regen] Name of source file is " << fileName << std::endl;

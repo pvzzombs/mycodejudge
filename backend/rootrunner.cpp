@@ -11,6 +11,109 @@
 #define OUTPUT_FILE "/mnt/sda2/fakesystem/home/sandbox/rout.txt"
 #define INPUT_FILE "/mnt/sda2/fakesystem/home/sandbox/rin.txt"
 #define FAKESYSTEMLOCATION "/mnt/sda2/fakesystem"
+#define FAKESYSTEMUSER "sandbox"
+
+bool isAlphaNumeric(char c) {
+  return (c >= '0' && c <= '9') || (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z');
+}
+
+std::string replaceJavaClassNameHelper(std::string fileContents, std::string baseName) {
+  std::string output;
+  int i = 0;
+  std::string temp;
+  int flag = 0;
+  while (i < fileContents.size()) {
+    if (!isAlphaNumeric(fileContents.at(i))) {
+      if (temp != "")  {
+        if (flag == 0) {
+          if (temp == "class") {
+            flag = 1;
+          }
+        } else if (flag == 1) {
+          if (temp == "Main") {
+            temp = baseName;
+          } 
+          flag = 0;
+        }
+        output += temp;
+        temp = "";
+      }
+      output += fileContents.at(i);
+    } else {
+      temp += fileContents.at(i);
+    }
+    i++;
+  }
+  if (temp.size()) {
+    output += temp;
+    temp = "";
+  }
+  // std::cout << "Done replacing file" << std::endl;
+  return output;
+}
+
+std::string extractBaseName(std::string name) {
+  std::string result;
+  bool hasDot = false;
+
+  // find the dot
+  int i = name.size() - 1;
+  while (i > -1) {
+    if (name.at(i) == '.') {
+      hasDot = true;
+      break;
+    }
+    i--;
+  }
+
+  if (!hasDot) {
+    i = name.size() - 1;
+  } else {
+    i--;
+  }
+
+  while (i > -1 && name.at(i) != '/') {
+    result = name.at(i) + result;
+    i--;
+  }
+
+  // std::cout << "Done extract base name" << std::endl;
+  return result;
+}
+
+void replaceJavaClassName(std::string fileName) {
+  std::ifstream inputFile;
+  std::string fileContents;
+  std::string l;
+  std::string baseName = extractBaseName(fileName);
+  inputFile.open(fileName);
+  if (inputFile.is_open()) {
+    while (std::getline(inputFile, l)) {
+      fileContents += l + "\n";
+    }
+  }
+  inputFile.close();
+
+  // do the processing 
+  std::string newContents = replaceJavaClassNameHelper(fileContents, baseName);
+
+  //rewrite file
+  std::ofstream outFile;
+  outFile.open(fileName);
+  if (outFile.is_open()) {
+    outFile << newContents;
+  }
+  outFile.close();
+  // std::cout << "finished file replacing" << std::endl;
+}
+
+void wakeUpJava() {
+  std::FILE * pipe = NULL;
+  std::string cmd = "chroot " FAKESYSTEMLOCATION " /bin/su - " FAKESYSTEMUSER " -c 'java -version'";
+  pipe = popen(cmd.c_str(), "r");
+  pclose(pipe);
+  std::cout << "Waking up java done..." << std::endl; 
+}
 
 void compileSourceCode(std::string fileName) {
   //detect code type:
@@ -43,6 +146,22 @@ void compileSourceCode(std::string fileName) {
     }
     pclose(pipe);
     warnings.close();
+  } else if (fileName.find(".java") != std::string::npos) {
+    baseName = fileName.substr(0, fileName.size() - 5);
+    std::string cmd = "export PATH=$PATH:/opt/jdk/bin; javac " + baseName + ".java 2>&1";
+    // std::cout << "Hello" << std::endl;
+    replaceJavaClassName(fileName);
+    // std::cout << "Hey" << std::endl;
+    std::ofstream warnings;
+    std::FILE * pipe = NULL;
+    char buffer[128];
+    warnings.open(baseName + ".w");
+    pipe = popen(cmd.c_str(), "r");
+    while(fgets(buffer, 128, pipe) != NULL) {
+      warnings << buffer;
+    }
+    pclose(pipe);
+    warnings.close();
   }
 }
 
@@ -55,7 +174,7 @@ void runExecutable(std::string fileName) {
     std::string name = baseName.substr(fakesystempath.size(), baseName.size());
     // std::cout << "name: " << name << std::endl;
     // bash -c 'echo $$ > /sys/fs/cgroup/guest/cgroup.procs; /home/guest/a.out'
-    std::string cmd = "timeout 2s sh -c 'echo $$ > /sys/fs/cgroup/guest/cgroup.procs; chroot " FAKESYSTEMLOCATION " /bin/su - sandbox -c '" + name + ".out' < " + baseName + ".txt 2>&1'";
+    std::string cmd = "timeout 2s sh -c 'echo $$ > /sys/fs/cgroup/guest/cgroup.procs; chroot " FAKESYSTEMLOCATION " /bin/su - " FAKESYSTEMUSER " -c '\\''" + name + ".out'\\'' < " + baseName + ".txt 2>&1'";
     std::cout << "command is " << cmd << std::endl;
     std::FILE * pipe = NULL;
     char buffer[128];
@@ -69,6 +188,7 @@ void runExecutable(std::string fileName) {
       file << buffer;
     }
     file.close();
+    pclose(pipe);
 
     file.open(baseName + ".done");
     file.close();
@@ -79,7 +199,7 @@ void runExecutable(std::string fileName) {
     std::string name = baseName.substr(fakesystempath.size(), baseName.size());
     // std::cout << "name: " << name << std::endl;
     // bash -c 'echo $$ > /sys/fs/cgroup/guest/cgroup.procs; /home/guest/a.out'
-    std::string cmd = "timeout 2s sh -c 'echo $$ > /sys/fs/cgroup/guest/cgroup.procs; chroot " FAKESYSTEMLOCATION " /bin/su - sandbox -c '" + name + ".out' < " + baseName + ".txt 2>&1'";
+    std::string cmd = "timeout 2s sh -c 'echo $$ > /sys/fs/cgroup/guest/cgroup.procs; chroot " FAKESYSTEMLOCATION " /bin/su - " FAKESYSTEMUSER" -c '\\''" + name + ".out'\\'' < " + baseName + ".txt 2>&1'";
     std::cout << "command is " << cmd << std::endl;
     std::FILE * pipe = NULL;
     char buffer[128];
@@ -93,6 +213,35 @@ void runExecutable(std::string fileName) {
       file << buffer;
     }
     file.close();
+    pclose(pipe);
+
+    file.open(baseName + ".done");
+    file.close();
+  } else if (fileName.find(".java") != std::string::npos) {
+    baseName = fileName.substr(0, fileName.size() - 5);
+    // std::cout << baseName << std::endl;
+    std::string fakesystempath = FAKESYSTEMLOCATION;
+    std::string name = baseName.substr(fakesystempath.size(), baseName.size());
+    std::string baseNameNoExtension = extractBaseName(fileName);
+    // std::cout << "name: " << name << std::endl;
+    // bash -c 'echo $$ > /sys/fs/cgroup/guest/cgroup.procs; /home/guest/a.out'
+    std::string cmd = "timeout 2s sh -c 'echo $$ > /sys/fs/cgroup/guest/cgroup.procs; chroot " FAKESYSTEMLOCATION " /bin/su - " FAKESYSTEMUSER " -c '\\''java -Xmx4m -Xms1m -Xss256k " + baseNameNoExtension + "'\\'' < " + baseName + ".txt 2>&1'";
+    std::cout << "command is " << cmd << std::endl;
+    std::FILE * pipe = NULL;
+    char buffer[128];
+
+    std::ofstream file;
+
+    wakeUpJava();
+
+    file.open(baseName + ".result");
+
+    pipe = popen(cmd.c_str(), "r");
+    while(fgets(buffer, 128, pipe) != NULL) {
+      file << buffer;
+    }
+    file.close();
+    pclose(pipe);
 
     file.open(baseName + ".done");
     file.close();

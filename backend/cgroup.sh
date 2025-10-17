@@ -4,6 +4,6 @@ echo "+cpu +io +memory +pids" > /sys/fs/cgroup/cgroup.subtree_control 2>/dev/nul
 cd /sys/fs/cgroup
 mkdir guest
 cd guest
-echo 5M > memory.max
-echo 10 > pids.max
+echo 20M > memory.max
+echo 20 > pids.max
 echo 50000 100000 > cpu.max
