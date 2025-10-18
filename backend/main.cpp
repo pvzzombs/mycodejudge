@@ -389,11 +389,11 @@ int main(int argc, char * argv[]) {
 
   LOG_F(INFO, "Running..., press q then press enter to exit.");
 
-  svr.Options("/status", [](const httplib::Request &req, httplib::Response &res){
+  svr.Options("/api/status", [](const httplib::Request &req, httplib::Response &res){
     allowCORS(res);
   });
 
-  svr.Get("/status", [&](const httplib::Request &req, httplib::Response &res){
+  svr.Get("/api/status", [&](const httplib::Request &req, httplib::Response &res){
     allowCORS(res);
     nlohmann::json out;
     out["status"] = "success";
@@ -402,11 +402,11 @@ int main(int argc, char * argv[]) {
     LOG_F(INFO, "Status successfully reached!");
   });
 
-  svr.Options("/view", [](const httplib::Request &req, httplib::Response &res){
+  svr.Options("/api/view", [](const httplib::Request &req, httplib::Response &res){
     allowCORS(res);
   });
 
-  svr.Post("/view", [&](const httplib::Request &req, httplib::Response &res){
+  svr.Post("/api/view", [&](const httplib::Request &req, httplib::Response &res){
     allowCORS(res);
     Sqlite::SqliteConnection conn(dbname.c_str());
     nlohmann::json j = nlohmann::json::parse(req.body);
@@ -438,11 +438,11 @@ int main(int argc, char * argv[]) {
     res.set_content(out.dump(), "application/json");
   });
 
-  svr.Options("/getsubmissions", [](const httplib::Request &req, httplib::Response &res){
+  svr.Options("/api/getsubmissions", [](const httplib::Request &req, httplib::Response &res){
     allowCORS(res);
   });
 
-  svr.Get("/getsubmissions", [&](const httplib::Request &req, httplib::Response &res){
+  svr.Get("/api/getsubmissions", [&](const httplib::Request &req, httplib::Response &res){
     allowCORS(res);
     Sqlite::SqliteConnection conn(dbname.c_str());
     nlohmann::json out;
@@ -460,11 +460,11 @@ int main(int argc, char * argv[]) {
     LOG_F(INFO, "Get submission success!");
   });
 
-  svr.Options("/post", [](const httplib::Request &req, httplib::Response &res){
+  svr.Options("/api/post", [](const httplib::Request &req, httplib::Response &res){
     allowCORS(res);
   });
 
-  svr.Post("/post", [](const httplib::Request &req, httplib::Response &res){
+  svr.Post("/api/post", [](const httplib::Request &req, httplib::Response &res){
     allowCORS(res);
     nlohmann::json j = nlohmann::json::parse(req.body);
     std::string program = j["post"];
@@ -514,11 +514,11 @@ int main(int argc, char * argv[]) {
     LOG_F(INFO, "Done!");
   });
 
-  svr.Options("/postsafe", [](const httplib::Request &req, httplib::Response &res){
+  svr.Options("/api/postsafe", [](const httplib::Request &req, httplib::Response &res){
     allowCORS(res);
   });
 
-  svr.Post("/postsafe", [&](const httplib::Request &req, httplib::Response &res){
+  svr.Post("/api/postsafe", [&](const httplib::Request &req, httplib::Response &res){
     allowCORS(res);
     nlohmann::json j = nlohmann::json::parse(req.body);
     std::string program = j["post"];
@@ -618,11 +618,11 @@ int main(int argc, char * argv[]) {
     LOG_F(INFO, "Done!");
   });
 
-  svr.Options("/submitcheck", [](const httplib::Request &req, httplib::Response &res){
+  svr.Options("/api/submitcheck", [](const httplib::Request &req, httplib::Response &res){
     allowCORS(res);
   });
 
-  svr.Post("/submitcheck", [&](const httplib::Request &req, httplib::Response &res){
+  svr.Post("/api/submitcheck", [&](const httplib::Request &req, httplib::Response &res){
     allowCORS(res);
     Sqlite::SqliteConnection conn(dbname.c_str());
     nlohmann::json j = nlohmann::json::parse(req.body);
@@ -781,11 +781,11 @@ int main(int argc, char * argv[]) {
     LOG_F(ERROR, "Invalid username or sessionid!");
   });
 
-  svr.Options("/deleteproblems", [](const httplib::Request &req, httplib::Response &res){
+  svr.Options("/api/deleteproblems", [](const httplib::Request &req, httplib::Response &res){
     allowCORS(res);
   });
 
-  svr.Post("/deleteproblems", [&](const httplib::Request &req, httplib::Response &res){
+  svr.Post("/api/deleteproblems", [&](const httplib::Request &req, httplib::Response &res){
     allowCORS(res);
     Sqlite::SqliteConnection conn(dbname.c_str());
     nlohmann::json j = nlohmann::json::parse(req.body);
@@ -805,11 +805,11 @@ int main(int argc, char * argv[]) {
     res.set_content("{\"status\":\"failed\"}", "application/json");
   });
 
-  svr.Options("/getproblems", [](const httplib::Request &req, httplib::Response &res){
+  svr.Options("/api/getproblems", [](const httplib::Request &req, httplib::Response &res){
     allowCORS(res);
   });
 
-  svr.Post("/getproblems", [&](const httplib::Request &req, httplib::Response &res){
+  svr.Post("/api/getproblems", [&](const httplib::Request &req, httplib::Response &res){
     allowCORS(res);
     Sqlite::SqliteConnection conn(dbname.c_str());
     nlohmann::json j = nlohmann::json::parse(req.body);
@@ -841,11 +841,11 @@ int main(int argc, char * argv[]) {
     return ;
   });
 
-  svr.Options("/postproblem", [](const httplib::Request &req, httplib::Response &res){
+  svr.Options("/api/postproblem", [](const httplib::Request &req, httplib::Response &res){
     allowCORS(res);
   });
 
-  svr.Post("/postproblem", [&](const httplib::Request &req, httplib::Response &res){
+  svr.Post("/api/postproblem", [&](const httplib::Request &req, httplib::Response &res){
     allowCORS(res);
     Sqlite::SqliteConnection conn(dbname.c_str());
     nlohmann::json j = nlohmann::json::parse(req.body);
@@ -869,11 +869,11 @@ int main(int argc, char * argv[]) {
     res.set_content("{\"status\":\"failed\"}", "application/json");
   });
 
-  svr.Options("/register", [](const httplib::Request &req, httplib::Response &res){
+  svr.Options("/api/register", [](const httplib::Request &req, httplib::Response &res){
     allowCORS(res);
   });
 
-  svr.Post("/register", [&](const httplib::Request &req, httplib::Response &res){
+  svr.Post("/api/register", [&](const httplib::Request &req, httplib::Response &res){
     allowCORS(res);
     Sqlite::SqliteConnection conn(dbname.c_str());
     nlohmann::json j = nlohmann::json::parse(req.body);
@@ -893,11 +893,11 @@ int main(int argc, char * argv[]) {
 
   });
 
-  svr.Options("/login", [](const httplib::Request &req, httplib::Response &res){
+  svr.Options("/api/login", [](const httplib::Request &req, httplib::Response &res){
     allowCORS(res);
   });
 
-  svr.Post("/login", [&](const httplib::Request &req, httplib::Response &res){
+  svr.Post("/api/login", [&](const httplib::Request &req, httplib::Response &res){
     allowCORS(res);
     Sqlite::SqliteConnection conn(dbname.c_str());
     nlohmann::json j = nlohmann::json::parse(req.body);
@@ -923,11 +923,11 @@ int main(int argc, char * argv[]) {
     res.set_content("{\"status\":\"failed\"}", "application/json");
   });
 
-  svr.Options("/logout", [](const httplib::Request &req, httplib::Response &res){
+  svr.Options("/api/logout", [](const httplib::Request &req, httplib::Response &res){
     allowCORS(res);
   });
 
-  svr.Post("/logout", [&](const httplib::Request &req, httplib::Response &res){
+  svr.Post("/api/logout", [&](const httplib::Request &req, httplib::Response &res){
     allowCORS(res);
     Sqlite::SqliteConnection conn(dbname.c_str());
     nlohmann::json j = nlohmann::json::parse(req.body);

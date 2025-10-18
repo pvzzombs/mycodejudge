@@ -1,7 +1,12 @@
 (function () {
-  var location = window.location.protocol + "//" + window.location.hostname + ":8000";
+  var location = "";
+  if (window.location.hostname.indexOf("localhost") > -1) {
+    location = window.location.protocol + "//" + window.location.hostname + ":5173";
+  } else {
+    location = window.location.protocol + "//" + window.location.hostname;
+  }
 
-  axios.get(location + "/status").then(function (r) {
+  axios.get(location + "/api/status").then(function (r) {
     console.log(r.data);
   }).catch(function(e) {
     Swal.fire({
@@ -28,7 +33,7 @@
     Swal.fire({
       title: "Please wait..."
     })
-    axios.post(location + "/postsafe", {
+    axios.post(location + "/api/postsafe", {
       post: editor.getValue(),
       input: document.getElementById("text-input").value,
       lang: lang
@@ -129,7 +134,7 @@
     Swal.fire({
       text: "Please wait..."
     });
-    axios.post(location + "/submitcheck", {
+    axios.post(location + "/api/submitcheck", {
       username: localStorage.getItem("username"),
       sessionid: localStorage.getItem("sessionid"),
       title: item.title,
@@ -187,7 +192,7 @@
       return;
     }
     // alert(location + "/login");
-    axios.post(location + "/login", {
+    axios.post(location + "/api/login", {
       username,
       password
     }).then(function (r) {
@@ -210,7 +215,7 @@
       alert("Blank");
       return;
     };
-    axios.post(location + "/register", {
+    axios.post(location + "/api/register", {
       username,
       password
     }).then(function (r) {
@@ -265,7 +270,7 @@
   }
 
   document.getElementById("problemSubmit").onclick = function (e) {
-    axios.post(location + "/postproblem", {
+    axios.post(location + "/api/postproblem", {
       admin: document.getElementById("admin-name").value,
       password: document.getElementById("admin-password").value,
       title: document.getElementById("ptitle").value,
@@ -352,7 +357,7 @@
   }
 
   document.getElementById("v-submit").onclick = function (e) {
-    axios.post(location + "/view", {
+    axios.post(location + "/api/view", {
       admin: document.getElementById("v-admin").value,
       password: document.getElementById("v-pass").value,
     }).then(function(r) {
@@ -379,7 +384,7 @@
     // var arr = JSON.parse(localStorage.getItem("problems"));
     var username = localStorage.getItem("username");
     var sessionid = localStorage.getItem("sessionid");
-    axios.post(location + "/getproblems", {
+    axios.post(location + "/api/getproblems", {
       username,
       sessionid
     }).then(function (r) {
@@ -431,7 +436,7 @@
   }
 
   document.getElementById("delete-problem-button").onclick = function (e) {
-    axios.post(location + "/deleteproblems", {
+    axios.post(location + "/api/deleteproblems", {
       admin: document.getElementById("d-admin-name").value,
       password: document.getElementById("d-admin-pass").value
     }).then(function (r) {
@@ -460,7 +465,7 @@
     btn.className = "btn btn-outline-light ms-auto"; // light button, aligned right
     btn.value = "🚪 Logout";
     btn.onclick = function () {
-      axios.post(location + "/logout", {
+      axios.post(location + "/api/logout", {
         username: localStorage.getItem("username"),
         sessionid: localStorage.getItem("sessionid")
       }).then(function (r) {
@@ -479,7 +484,7 @@
     var elemList = document.getElementById("submitLists");
     elemList.innerHTML = ""; // clear old entries
 
-    axios.get(location + "/getsubmissions").then(function (r) {
+    axios.get(location + "/api/getsubmissions").then(function (r) {
       for (var i = 0; i < r.data.list.length; i++) {
         var submission = r.data.list[i];
 
