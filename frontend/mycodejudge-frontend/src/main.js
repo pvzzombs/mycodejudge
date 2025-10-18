@@ -3,6 +3,7 @@ import { marked } from "marked";
 import Navigo from "navigo";
 import Swal from "sweetalert2";
 import DOMPurify from "dompurify";
+// import {} from "bootstrap";
 
 var location = "";
 if (window.location.hostname.indexOf("localhost") > -1) {
