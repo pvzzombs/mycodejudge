@@ -7,6 +7,7 @@
 - cgroup2
 - timeout
 - sh
+- su
 ### External Dependencies
 - [libsodium](https://doc.libsodium.org/)
 - [sqlite3](https://sqlite.org/)
@@ -18,6 +19,7 @@
 ### Target programming languages
 - C
 - C++
+- Java
 ## Steps
 ### Preparing for steps
 1. Go to the `backend` folder
@@ -33,7 +35,7 @@ See below (Should not be part of this guide)
 6. Open `main.cpp`, edit `FAKESYSTEMLOCATION` to point to chroot sandbox directory, ensure there is no slash on the end of the path, also edit `FAKESYSTEMLOCATIONHOME` which points to the home folder of the sandbox non root user directory and make sure there is slash at the end of the path
 7. Open `nrp.hpp`, edit `OUTPUT_FILE` and `INPUT_FILE` to where you store the files to be use for backend communication
 8. Open `rootrunner.cpp`, edit `OUTPUT_FILE`, `INPUT_FILE` similarly to the above step, it should match the `nrp.hpp` macro definitions
-9. Open `rootrunner.cpp`, edit `FAKESYSTEMLOCATION` similarly to step 1, it should match the `main.cpp` macro definition
+9. Open `rootrunner.cpp`, edit `FAKESYSTEMLOCATION` similarly to step 6, it should match the `main.cpp` macro definition, also edit `FAKESYSTEMUSER`, it should match the name of the non root user inside the chroot sandbox
 10. Run `compile.sh` normally
 ### Running the backend
 11. Ensure cgroup2 is functioning
