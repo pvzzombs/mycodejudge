@@ -63,7 +63,8 @@ This should not be part of this guide, but in case, here it is.
 root:x:0:0:root:/root:/bin/sh
 sandbox:x:1000:1000:Sandbox:/home/sandbox:/bin/sh
 ```
-You can change the second line (`sandbox`), to whatever you want, but make sure to not change the first line, the (`root`) should remain as it is
+You can change the second line (`sandbox`), to whatever you want, but make sure to not change the first line, the (`root`) should remain as it is  
+**NOTE**: Make sure the user ID inside the chroot matches your user ID outside the chroot
 
 7. Create a new file on `etc` directory with name `group`
 8. Edit `group` file, add the lines below:
