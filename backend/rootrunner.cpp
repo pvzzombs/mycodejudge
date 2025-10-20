@@ -278,6 +278,7 @@ int main(int argc, char * argv[]) {
 
   std::thread t2([&]() {
     std::streampos lastPos = 0;
+    std::string headerStub;
 
     while(!quit.load()) {
       out.open(OUTPUT_FILE);
@@ -296,7 +297,15 @@ int main(int argc, char * argv[]) {
       std::string l;
       in.open(INPUT_FILE);
       if (in.is_open()) {
-        in.seekg(lastPos);
+        std::getline(in, l);
+        if (l != headerStub) {
+          // file changes, not appended
+          // continue
+          in.seekg(in.tellg());
+          headerStub = l;
+        } else {
+          in.seekg(lastPos);
+        }
 
         while (std::getline(in, l)) {
           fileNames.push_back(l);

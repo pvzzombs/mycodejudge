@@ -8,6 +8,7 @@
 #include <thread>
 #include <chrono>
 #include <sstream>
+#include <dirent.h>
 
 #include <sodium.h>
 #include <httplib.h>
@@ -382,6 +383,9 @@ int main(int argc, char * argv[]) {
 
   NRP nrp;
 
+  std::atomic<int> deleteFileDecider;
+  deleteFileDecider.store(0);
+
   std::srand(std::time(NULL));
 
   Sqlite::sqliteExecute(mainconn, "delete from admin");
@@ -533,6 +537,8 @@ int main(int argc, char * argv[]) {
 
     nlohmann::json outjson;
 
+    deleteFileDecider++;
+
     if (lang == "cpp") {
       ext = ".cpp";
     } else if (lang == "c") {
@@ -614,6 +620,7 @@ int main(int argc, char * argv[]) {
 
     removeCodeFiles(name, fileName);
 
+    deleteFileDecider--;
     res.set_content(outjson.dump(), "application/json");
     LOG_F(INFO, "Done!");
   });
@@ -641,6 +648,8 @@ int main(int argc, char * argv[]) {
 
     nlohmann::json outjson;
     outjson["status"] = "failed";
+
+    deleteFileDecider++;
 
     for (auto row: Sqlite::SqliteStatement(conn, "select sessionid from sessions where username = ?", username)) {
       if (!verify_password(sessionid, row.getString(0))) {
@@ -717,6 +726,7 @@ int main(int argc, char * argv[]) {
           if (compileResult != "") {
             outjson["message"] = compileResult;
             removeCodeFiles(name, fileName);
+            deleteFileDecider--;
             res.set_content(outjson.dump(), "application/json");
             LOG_F(ERROR, "Compilation error/s!");
             return ;
@@ -727,56 +737,25 @@ int main(int argc, char * argv[]) {
             outjson["message"] = "Solution accepted";
             Sqlite::sqliteExecute(conn, "insert into solutions(username, title, submitdate, solution, isSolved) values(?, ?, ?, ?, ?)", username, title, static_cast<int>(std::time(NULL)), program, "true");
             removeCodeFiles(name, fileName);
+            deleteFileDecider--;
             res.set_content(outjson.dump(), "application/json");
             LOG_F(INFO, "Solution accepted!");
             return ;
           } else {
             outjson["message"] = "Solution not accepted";
             removeCodeFiles(name, fileName);
+            deleteFileDecider--;
             res.set_content(outjson.dump(), "application/json");
             LOG_F(INFO, "Solution not accepted!");
             return ;
           }
-
-          // //compile
-          // int r = 0;
-          // if (lang == "cpp") {
-          //   r = compileCppNoParsedEndline(name, compileResult);
-          // } else if (lang == "c") {
-          //   r = compileCNoParsedEndline(name, compileResult);
-          // }
-          // if (r) {
-          //   runChrootNoParsedEndline(scopedname, row2.getString(0), runResult);
-          //   // std::string str = parseStringWithEscapes(row2.getString(1));
-          //   if (isAnswersMatch(runResult, row2.getString(1))) {
-          //     outjson["status"] = "success";
-          //     outjson["message"] = "Solution accepted";
-
-          //     Sqlite::sqliteExecute(conn, "insert into solutions(username, title, submitdate, solution, isSolved) values(?, ?, ?, ?, ?)", username, title, static_cast<int>(std::time(NULL)), program, "true");
-
-          //     res.set_content(outjson.dump(), "application/json");
-          //     LOG_F(INFO, "Solution accepted!");
-          //     return ;
-          //   } else {
-          //     outjson["message"] = "Solution not accepted";
-          //     res.set_content(outjson.dump(), "application/json");
-          //     LOG_F(INFO, "Solution not accepted!");
-          //     return ;
-          //   }
-          // } else {
-          //   outjson["message"] = compileResult;
-          //   res.set_content(outjson.dump(), "application/json");
-          //   LOG_F(ERROR, "Compilation error/s!");
-          //   return ;
-          // }
-
-
         }
         break;
       }
     }
 
     outjson["message"] = "Invalid username or sessionid";
+    deleteFileDecider--;
     res.set_content(outjson.dump(), "application/json");
     LOG_F(ERROR, "Invalid username or sessionid!");
   });
@@ -947,14 +926,15 @@ int main(int argc, char * argv[]) {
     res.set_content("{\"status\":\"failed\"}", "application/json");
   });
 
-  bool GOEXIT = false;
+  std::atomic<bool> GOEXIT;
+  GOEXIT.store(false);
 
   std::thread t1([&]() {
     std::string q;
     do {
       std::getline(std::cin, q);
       if (q.size() > 0 && q.at(0) == 'q') {
-        GOEXIT = true;
+        GOEXIT.store(true);
         {
           std::unique_lock<std::mutex> lck(nrp.arrMutex);
           nrp.quit.store(true);
@@ -963,7 +943,7 @@ int main(int argc, char * argv[]) {
         svr.stop();
         LOG_F(INFO, "Server stopped...");
       }
-    } while (!GOEXIT);
+    } while (!GOEXIT.load());
   });
 
   std::thread t2([&]() {
@@ -975,9 +955,41 @@ int main(int argc, char * argv[]) {
     nrp.wait();
   });
 
+  std::thread t4([&]() {
+    while (!GOEXIT.load()) {
+      std::this_thread::sleep_for(std::chrono::milliseconds(3000));
+      if (deleteFileDecider.load() == 0) {
+        LOG_F(INFO, "Deletion started...");
+        std::string dirPath = FAKESYSTEMLOCATION FAKESYSTEMLOCATIONHOME;
+        DIR * dir = opendir(dirPath.c_str());
+        if (dir != nullptr) {
+          dirent * entry;
+          while ((entry = readdir(dir)) != nullptr) {
+            std::string fileName = entry->d_name;
+            if (fileName == "." || fileName == "..") {
+              continue;
+            }
+            fileName = dirPath + "/" + fileName;
+            if (deleteFileDecider.load() == 0) {
+              LOG_F(INFO, "Deleting file:  %s", fileName.c_str());
+              std::remove(fileName.c_str());
+            } else {
+              LOG_F(ERROR, "Deletion cancelling...");
+              break;
+            }
+          }
+        }
+        closedir(dir);
+      } else {
+        LOG_F(INFO, "Deletion will be rescheduled...");
+      }
+    }
+  });
+
   t1.join();
   t2.join();
   t3.join();
+  t4.join();
 
   return 0;
 }

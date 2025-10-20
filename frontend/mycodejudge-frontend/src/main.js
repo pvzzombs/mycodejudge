@@ -6,7 +6,7 @@ import DOMPurify from "dompurify";
 // import {} from "bootstrap";
 
 var location = "";
-if (window.location.hostname.indexOf("localhost") > -1) {
+if (window.location.hostname.indexOf("localhost") > -1 || window.location.hostname.indexOf("192.168.") > -1) {
   location = window.location.protocol + "//" + window.location.hostname + ":5173";
 } else {
   location = window.location.protocol + "//" + window.location.hostname;

@@ -1,4 +1,5 @@
 #pragma once
+#include <cstdio>
 #include <atomic>
 #include <vector>
 #include <fstream>
@@ -7,8 +8,18 @@
 #include <mutex>
 #include <condition_variable>
 
+#include <loguru.hpp>
+
 #define OUTPUT_FILE "/mnt/sda2/fakesystem/home/sandbox/rout.txt"
 #define INPUT_FILE "/mnt/sda2/fakesystem/home/sandbox/rin.txt"
+
+std::string generateRandomHeader() {
+  std::string name = "";
+  for (int i = 0; i < 16; i++) {
+    name += (rand() % 26) + 'a';
+  }
+  return name;
+}
 
 class NRP {
 public:
@@ -17,6 +28,7 @@ public:
   std::mutex arrMutex;
   std::condition_variable cv;
   NRP(): quit(false) {
+    std::srand(std::time(NULL));
   }
   void wait() {
     std::ofstream nro;
@@ -36,13 +48,22 @@ public:
         f.open(OUTPUT_FILE);
         if (f.is_open()) {
           std::getline(f, s);
+          std::streampos pos;
           if (s == "ready") {
             std::ofstream o;
             // size_t n = arr.size();
             // int i = 0;
             o.open(INPUT_FILE, std::ios::app);
-            o << arr.front() << std::endl;
-            arr.erase(arr.begin());
+            if (o.is_open()) {
+              pos = o.tellp();
+              if (pos == 0) {
+                o << generateRandomHeader() << std::endl;
+                // std::cout << "Stub was written" << std::endl;
+                LOG_F(INFO, "Stub was written...");
+              }
+              o << arr.front() << std::endl;
+              arr.erase(arr.begin());
+            }
             o.close();
           }
         }
