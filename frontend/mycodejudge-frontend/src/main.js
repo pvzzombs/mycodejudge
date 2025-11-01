@@ -7,7 +7,7 @@ import DOMPurify from "dompurify";
 
 var location = "";
 if (window.location.hostname.indexOf("localhost") > -1 || window.location.hostname.indexOf("192.168.") > -1) {
-  location = window.location.protocol + "//" + window.location.hostname + ":5173";
+  location = window.location.protocol + "//" + window.location.hostname + ":3000";
 } else {
   location = window.location.protocol + "//" + window.location.hostname;
 }
@@ -31,6 +31,14 @@ document.getElementById('editor').style.fontSize = '16px';
 
 editor.setValue("#include <stdio.h>\nint main() {\n  return 0;\n}");
 
+
+var pgEditor = ace.edit("pg-editor");
+pgEditor.setTheme("ace/theme/monokai");
+pgEditor.session.setMode("ace/mode/c_cpp");
+pgEditor.session.setTabSize(2);
+pgEditor.session.setUseSoftTabs(true);
+document.getElementById("pg-editor").style.fontSize = '16px';
+
 var lang = "c";
 var currentProblemVar = null;
 var currentProblemSolved = false;
@@ -46,6 +54,37 @@ document.getElementById("run").onclick = function () {
   }).then(function (response) {
     console.log(response.data);
     document.getElementById("output").value = response.data.result;
+    if (response.data.errors != "") {
+      Swal.fire({
+        title: "Error/s:",
+        text: response.data.errors
+      });
+    } else {
+      Swal.fire({
+        title: "Success!",
+        icon: "success"
+      })
+    }
+  }).catch(function (err) {
+    Swal.fire({
+      title: "Error!",
+      icon: "error",
+      text: "error"
+    })
+  });
+};
+
+document.getElementById("pg-run").onclick = function () {
+  Swal.fire({
+    title: "Please wait..."
+  })
+  axios.post(location + "/api/postsafe", {
+    post: pgEditor.getValue(),
+    input: document.getElementById("pg-text-input").value,
+    lang: lang
+  }).then(function (response) {
+    console.log(response.data);
+    document.getElementById("pg-output").value = response.data.result;
     if (response.data.errors != "") {
       Swal.fire({
         title: "Error/s:",
@@ -244,31 +283,43 @@ document.getElementById("switch-to-register").onclick = function () {
   document.getElementById("register").style.display = "block";
 }
 
-document.getElementById("langc").onclick = function (e) {
-  lang = "c";
-  console.log("c");
-  Swal.fire({
-    text: "C"
-  });
-  editor.session.setMode("ace/mode/c_cpp");
-};
+var langcelm = document.getElementsByClassName("langc");
+for (var i = 0; i < langcelm.length; i++) {
+  langcelm[i].onclick = function (e) {
+    lang = "c";
+    console.log("c");
+    Swal.fire({
+      text: "C"
+    });
+    editor.session.setMode("ace/mode/c_cpp");
+  };
+}
 
-document.getElementById("langcpp").onclick = function (e) {
-  lang = "cpp";
-  console.log("cpp");
-  Swal.fire({
-    text: "C++"
-  });
-  editor.session.setMode("ace/mode/c_cpp");
+
+var langcppelm = document.getElementsByClassName("langcpp");
+for (var i = 0; i < langcppelm.length; i++) {
+  langcppelm[i].onclick = function (e) {
+    lang = "cpp";
+    console.log("cpp");
+    Swal.fire({
+      text: "C++"
+    });
+    editor.session.setMode("ace/mode/c_cpp");
+  }
 }
-document.getElementById("langjava").onclick = function (e) {
-  lang = "java";
-  console.log("java");
-  Swal.fire({
-    text: "Java"
-  });
-  editor.session.setMode("ace/mode/java");
+
+var langjavaelm = document.getElementsByClassName("langjava");
+for (var i = 0; i < langjavaelm.length; i++) {
+  langjavaelm[i].onclick = function (e) {
+    lang = "java";
+    console.log("java");
+    Swal.fire({
+      text: "Java"
+    });
+    editor.session.setMode("ace/mode/java");
+  }
 }
+
 
 document.getElementById("mback").onclick = function (e) {
   document.getElementById("main-div").style.display = "none";
@@ -375,6 +426,14 @@ document.getElementById("v-submit").onclick = function (e) {
   });
 }
 
+document.getElementById("pg").onclick = playground;
+
+document.getElementById("pg-mback").onclick = function () {
+  hideAll();
+  //alert();
+  window.location.reload();
+}
+
 function gotoMainWindow(obj) {
   return function () {
     // localStorage.setItem("currentProblem", JSON.stringify(obj));
@@ -463,6 +522,12 @@ function hideAll() {
   document.getElementById("problem-deleter").style.display = "none";
   document.getElementById("submissions").style.display = "none";
   document.getElementById("view").style.display = "none";
+  document.getElementById("playground").style.display = "none";
+}
+
+function playground() {
+  hideAll();
+  document.getElementById("playground").style.display = "block";
 }
 
 function addLogoutButton() {

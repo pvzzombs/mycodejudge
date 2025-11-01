@@ -174,7 +174,7 @@ void runExecutable(std::string fileName) {
     std::string name = baseName.substr(fakesystempath.size(), baseName.size());
     // std::cout << "name: " << name << std::endl;
     // bash -c 'echo $$ > /sys/fs/cgroup/guest/cgroup.procs; /home/guest/a.out'
-    std::string cmd = "timeout 2s sh -c 'echo $$ > /sys/fs/cgroup/guest/cgroup.procs; chroot " FAKESYSTEMLOCATION " /bin/su - " FAKESYSTEMUSER " -c '\\''" + name + ".out'\\'' < " + baseName + ".txt 2>&1'";
+    std::string cmd = "timeout 2s sh -c 'echo $$ > /sys/fs/cgroup/ccpplang/cgroup.procs; chroot " FAKESYSTEMLOCATION " /bin/su - " FAKESYSTEMUSER " -c '\\''" + name + ".out'\\'' < " + baseName + ".txt 2>&1'";
     std::cout << "command is " << cmd << std::endl;
     std::FILE * pipe = NULL;
     char buffer[128];
@@ -199,7 +199,7 @@ void runExecutable(std::string fileName) {
     std::string name = baseName.substr(fakesystempath.size(), baseName.size());
     // std::cout << "name: " << name << std::endl;
     // bash -c 'echo $$ > /sys/fs/cgroup/guest/cgroup.procs; /home/guest/a.out'
-    std::string cmd = "timeout 2s sh -c 'echo $$ > /sys/fs/cgroup/guest/cgroup.procs; chroot " FAKESYSTEMLOCATION " /bin/su - " FAKESYSTEMUSER" -c '\\''" + name + ".out'\\'' < " + baseName + ".txt 2>&1'";
+    std::string cmd = "timeout 2s sh -c 'echo $$ > /sys/fs/cgroup/ccpplang/cgroup.procs; chroot " FAKESYSTEMLOCATION " /bin/su - " FAKESYSTEMUSER" -c '\\''" + name + ".out'\\'' < " + baseName + ".txt 2>&1'";
     std::cout << "command is " << cmd << std::endl;
     std::FILE * pipe = NULL;
     char buffer[128];
@@ -225,7 +225,7 @@ void runExecutable(std::string fileName) {
     std::string baseNameNoExtension = extractBaseName(fileName);
     // std::cout << "name: " << name << std::endl;
     // bash -c 'echo $$ > /sys/fs/cgroup/guest/cgroup.procs; /home/guest/a.out'
-    std::string cmd = "timeout 2s sh -c 'echo $$ > /sys/fs/cgroup/guest/cgroup.procs; chroot " FAKESYSTEMLOCATION " /bin/su - " FAKESYSTEMUSER " -c '\\''java -Xmx4m -Xms1m -Xss256k " + baseNameNoExtension + "'\\'' < " + baseName + ".txt 2>&1'";
+    std::string cmd = "timeout 2s sh -c 'echo $$ > /sys/fs/cgroup/javalang/cgroup.procs; chroot " FAKESYSTEMLOCATION " /bin/su - " FAKESYSTEMUSER " -c '\\''java -Xmx32m -Xms1m -Xss256k " + baseNameNoExtension + "'\\'' < " + baseName + ".txt 2>&1'";
     std::cout << "command is " << cmd << std::endl;
     std::FILE * pipe = NULL;
     char buffer[128];
