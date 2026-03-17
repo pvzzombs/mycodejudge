@@ -79,4 +79,9 @@ public:
     f.open(withTxt);
     return f.good();
   }
+  
+  void deleteDoneFile(std::string fileBaseName) {
+    std::string withTxt = fileBaseName + ".done";
+    std::remove(withTxt.c_str());
+  }
 };

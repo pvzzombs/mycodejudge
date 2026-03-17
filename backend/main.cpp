@@ -679,76 +679,93 @@ int main(int argc, char * argv[]) {
           sourceFile.open(fileName);
           sourceFile << program;
           sourceFile.close();
+          
+          nlohmann::json testcases_json = nlohmann::json::parse(row2.getString(0));
+          
+          int testCasesLen = testcases_json["length"];
 
-          std::ofstream inputFile;
-          inputFile.open(name + ".txt");
-          inputFile << row2.getString(0);
-          inputFile.close();
+          for (int x = 0; x < testCasesLen; x++) {
+            
+            // std::cout << "Test " << x << std::endl;
+            // std::cout << testcases_json["items"][x]["test"] << std::endl;
+            // std::cout << testcases_json["items"][x]["answer"] << std::endl;
+            
+            
+            std::ofstream inputFile;
+            inputFile.open(name + ".txt");
+            inputFile << testcases_json["items"][x]["test"].get<std::string>();
+            inputFile.close();
 
-          // nrp.arrMutex.lock();
-          // nrp.arr.push_back(fileName);
-          // nrp.arrMutex.unlock();
-          {
-            std::unique_lock<std::mutex> lck(nrp.arrMutex);
-            nrp.arr.push_back(fileName);
-            nrp.cv.notify_one();
+            // nrp.arrMutex.lock();
+            // nrp.arr.push_back(fileName);
+            // nrp.arrMutex.unlock();
+            {
+              std::unique_lock<std::mutex> lck(nrp.arrMutex);
+              nrp.arr.push_back(fileName);
+              nrp.cv.notify_one();
+            }
+
+            while (!nrp.isAvailable(name)) {
+              std::this_thread::sleep_for(std::chrono::milliseconds(100));
+            }
+
+            std::string line;
+            std::ifstream fileResult;
+            std::stringstream ss;
+
+            fileResult.open(name + ".w");
+            ss << fileResult.rdbuf();
+            fileResult.close();
+
+            compileResult = ss.str();
+
+            ss.str("");
+            ss.clear();
+
+            fileResult.open(name + ".result");
+            ss << fileResult.rdbuf();
+            // std::cout << "Result: " << fileResult.rdbuf() << std::endl;
+            fileResult.close();
+
+            runResult = ss.str();
+
+            // std::cout << "Result from variable: " << runResult << std::endl;
+
+            // outjson["errors"] = compileResult;
+            // outjson["result"] = runResult;
+
+            if (compileResult != "") {
+              outjson["message"] = compileResult;
+              removeCodeFiles(name, fileName);
+              deleteFileDecider--;
+              res.set_content(outjson.dump(), "application/json");
+              LOG_F(ERROR, "Compilation error/s!");
+              return ;
+            }
+
+            // std::cout << "Run result is " << runResult << std::endl;
+            if (isAnswersMatch(runResult, testcases_json["items"][x]["answer"].get<std::string>())) {
+              // std::cout << "Run result is " << runResult << std::endl;
+              nrp.deleteDoneFile(name);
+              std::remove((name + ".txt").c_str());
+            } else {
+              outjson["message"] = "Solution not accepted";
+              removeCodeFiles(name, fileName);
+              deleteFileDecider--;
+              res.set_content(outjson.dump(), "application/json");
+              LOG_F(INFO, "Solution not accepted!");
+              return ;
+            }
           }
-
-          while (!nrp.isAvailable(name)) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(100));
-          }
-
-          std::string line;
-          std::ifstream fileResult;
-          std::stringstream ss;
-
-          fileResult.open(name + ".w");
-          ss << fileResult.rdbuf();
-          fileResult.close();
-
-          compileResult = ss.str();
-
-          ss.str("");
-          ss.clear();
-
-          fileResult.open(name + ".result");
-          ss << fileResult.rdbuf();
-          // std::cout << "Result: " << fileResult.rdbuf() << std::endl;
-          fileResult.close();
-
-          runResult = ss.str();
-
-          // std::cout << "Result from variable: " << runResult << std::endl;
-
-          // outjson["errors"] = compileResult;
-          // outjson["result"] = runResult;
-
-          if (compileResult != "") {
-            outjson["message"] = compileResult;
-            removeCodeFiles(name, fileName);
-            deleteFileDecider--;
-            res.set_content(outjson.dump(), "application/json");
-            LOG_F(ERROR, "Compilation error/s!");
-            return ;
-          }
-
-          if (isAnswersMatch(runResult, row2.getString(1))) {
-            outjson["status"] = "success";
-            outjson["message"] = "Solution accepted";
-            Sqlite::sqliteExecute(conn, "insert into solutions(username, title, submitdate, solution, isSolved) values(?, ?, ?, ?, ?)", username, title, static_cast<int>(std::time(NULL)), program, "true");
-            removeCodeFiles(name, fileName);
-            deleteFileDecider--;
-            res.set_content(outjson.dump(), "application/json");
-            LOG_F(INFO, "Solution accepted!");
-            return ;
-          } else {
-            outjson["message"] = "Solution not accepted";
-            removeCodeFiles(name, fileName);
-            deleteFileDecider--;
-            res.set_content(outjson.dump(), "application/json");
-            LOG_F(INFO, "Solution not accepted!");
-            return ;
-          }
+          
+          outjson["status"] = "success";
+          outjson["message"] = "Solution accepted";
+          Sqlite::sqliteExecute(conn, "insert into solutions(username, title, submitdate, solution, isSolved) values(?, ?, ?, ?, ?)", username, title, static_cast<int>(std::time(NULL)), program, "true");
+          removeCodeFiles(name, fileName);
+          deleteFileDecider--;
+          res.set_content(outjson.dump(), "application/json");
+          LOG_F(INFO, "Solution accepted!");
+          return ;
         }
         break;
       }

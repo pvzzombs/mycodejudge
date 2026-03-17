@@ -327,13 +327,25 @@ document.getElementById("mback").onclick = function (e) {
 }
 
 document.getElementById("problemSubmit").onclick = function (e) {
+  testCasesObj["length"] = testCasesCount;
+  testCasesObj["items"] = [];
+  var i;
+  for (i = 0; i < testCasesCount; i++) {
+    testCasesObj["items"].push({
+      "test": document.getElementById("test-" + i).value,
+      "answer": document.getElementById("answer-"+i).value
+    });
+  }
+  
+  // console.log(testCasesObj);
+  
   axios.post(location + "/api/postproblem", {
     admin: document.getElementById("admin-name").value,
     password: document.getElementById("admin-password").value,
     title: document.getElementById("ptitle").value,
     desc: document.getElementById("pdesc").value,
-    testcases: document.getElementById("ptestcases").value,
-    answers: document.getElementById("panswers").value
+    testcases: JSON.stringify(testCasesObj),
+    answers: ""
   }).then(function (r) {
     if (r.data.status == "success") {
       Swal.fire({
@@ -511,6 +523,35 @@ document.getElementById("delete-problem-button").onclick = function (e) {
       alert("Cannot delete all problems");
     }
   })
+}
+
+var testCasesCount = 0;
+var testCasesObj = {};
+// var currentTestCaseName = "0";
+
+document.getElementById("addTestCases").onclick = function(e) {
+  var parentElem = document.getElementById("pc-items");
+  var curElem = document.createElement("div");
+  var testCaseTestBox = document.createElement("textarea");
+  var testCaseAnswerBox = document.createElement("textarea");
+  
+  testCaseTestBox.id = "test-" + testCasesCount;
+  testCaseAnswerBox.id = "answer-" + testCasesCount;
+  
+  testCaseTestBox.className = "col-md-6 font-monospace";
+  testCaseTestBox.placeholder = "Enter TestCase Input here...";
+  testCaseTestBox.rows = 5;
+  
+  testCaseAnswerBox.className = "col-md-6 font-monospace";
+  testCaseAnswerBox.placeholder = "Enter TestCase Answer here...";
+  testCaseAnswerBox.rows = 5;
+  
+  testCasesCount++;
+  
+  curElem.appendChild(testCaseTestBox);
+  curElem.appendChild(testCaseAnswerBox);
+  parentElem.appendChild(curElem);
+  
 }
 
 function hideAll() {
