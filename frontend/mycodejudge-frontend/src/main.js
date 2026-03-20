@@ -43,6 +43,14 @@ var lang = "c";
 var currentProblemVar = null;
 var currentProblemSolved = false;
 
+var testCasesCount = 0;
+var testCasesObj = {};
+
+var langcelm = document.getElementsByClassName("langc");
+var langcppelm = document.getElementsByClassName("langcpp");
+var langjavaelm = document.getElementsByClassName("langjava");
+
+/* Run button from problem page */
 document.getElementById("run").onclick = function () {
   Swal.fire({
     title: "Please wait..."
@@ -74,6 +82,7 @@ document.getElementById("run").onclick = function () {
   });
 };
 
+/* Run button from playground*/
 document.getElementById("pg-run").onclick = function () {
   Swal.fire({
     title: "Please wait..."
@@ -105,77 +114,10 @@ document.getElementById("pg-run").onclick = function () {
   });
 };
 
-function matchAnswers(a, b) {
-  var arr1 = [];
-  var arr2 = [];
-  var temp = "";
-
-  for (var i = 0; i < a.length; i++) {
-    if (a[i] == " " || a[i] == "\t" || a[i] == "\n") {
-      if (temp == "") {
-        continue;
-      } else {
-        arr1.push(temp);
-        if (a[i] == "\n") {
-          arr1.push("\n");
-        }
-        temp = "";
-      }
-    } else {
-      temp += a[i];
-    }
-  }
-  if (temp != "") { arr1.push(temp); }
-
-  temp = "";
-
-  for (var i = 0; i < b.length; i++) {
-    if (b[i] == " " || b[i] == "\t" || b[i] == "\n") {
-      if (temp == "") {
-        continue;
-      } else {
-        arr2.push(temp);
-        if (b[i] == "\n") {
-          arr2.push("\n");
-        }
-        temp = "";
-      }
-    } else {
-      temp += b[i];
-    }
-  }
-  if (temp != "") { arr2.push(temp); }
-
-  while (arr1[arr1.length - 1] == "\n") {
-    arr1.pop();
-  }
-
-  while (arr2[arr2.length - 1] == "\n") {
-    arr2.pop();
-  }
-
-  // console.log(arr1);
-  // console.log(arr2);
-
-  if (arr1.length != arr2.length) {
-    return false;
-  }
-
-  for (var x = 0; x < arr1.length; x++) {
-    if (arr1[x] != arr2[x]) {
-      return false;
-    }
-  }
-  return true;
-}
-
+/* Submit button from problem page */
 document.getElementById("solve").onclick = function (e) {
-  // var index = parseInt(JSON.parse(localStorage.getItem("currentProblem")));
-  // console.log(index);
-  // var item = JSON.parse(localStorage.getItem("currentProblem"));
   var item = currentProblemVar;
   currentProblemSolved = false;
-  // console.log(item);
   Swal.fire({
     text: "Please wait..."
   });
@@ -201,33 +143,7 @@ document.getElementById("solve").onclick = function (e) {
   });
 }
 
-// document.getElementById("submitsolution").onclick = function() {
-//   var d = (new Date()).toString();
-//   var username = localStorage.getItem("username");
-//   var sessionid = localStorage.getItem("sessionid");
-//   var edit = editor.getValue();
-//   console.log(d);
-//   console.log(username);
-//   if (!currentProblemSolved) {
-//     Swal.fire({
-//       text: "Check answer before clicking submit."
-//     });
-//     return;
-//   }
-//   axios.post("http://localhost:8000/submitsolution", {
-//     username,
-//     sessionid,
-//     title: currentProblemVar.title,
-//     solution: edit,
-//     submitdate: d,
-//     isSolved: currentProblemSolved ? "true" : "false"
-//   }).then(function(r) {
-//     Swal.fire({
-//       text: "Submitted!"
-//     })
-//   });
-// };
-
+/* Log In submit event from LogIn page */
 document.getElementById("login-form").onsubmit = function (e) {
   e.preventDefault();
   var username = document.getElementById("username").value;
@@ -252,6 +168,7 @@ document.getElementById("login-form").onsubmit = function (e) {
   });
 };
 
+/* Register event from Register page */
 document.getElementById("register-form").onsubmit = function (e) {
   e.preventDefault();
   var username = document.getElementById("r-username").value;
@@ -283,7 +200,8 @@ document.getElementById("switch-to-register").onclick = function () {
   document.getElementById("register").style.display = "block";
 }
 
-var langcelm = document.getElementsByClassName("langc");
+/* Handles button clicks for changing the editor programming language/s */
+
 for (var i = 0; i < langcelm.length; i++) {
   langcelm[i].onclick = function (e) {
     lang = "c";
@@ -295,8 +213,6 @@ for (var i = 0; i < langcelm.length; i++) {
   };
 }
 
-
-var langcppelm = document.getElementsByClassName("langcpp");
 for (var i = 0; i < langcppelm.length; i++) {
   langcppelm[i].onclick = function (e) {
     lang = "cpp";
@@ -308,7 +224,6 @@ for (var i = 0; i < langcppelm.length; i++) {
   }
 }
 
-var langjavaelm = document.getElementsByClassName("langjava");
 for (var i = 0; i < langjavaelm.length; i++) {
   langjavaelm[i].onclick = function (e) {
     lang = "java";
@@ -320,12 +235,13 @@ for (var i = 0; i < langjavaelm.length; i++) {
   }
 }
 
-
+/* This handles the button click to go back on the problem list */
 document.getElementById("mback").onclick = function (e) {
   document.getElementById("main-div").style.display = "none";
   document.getElementById("probList").style.display = "block";
 }
 
+/* This event submits the problem to the backend */
 document.getElementById("problemSubmit").onclick = function (e) {
   testCasesObj["length"] = testCasesCount;
   testCasesObj["items"] = [];
@@ -336,8 +252,6 @@ document.getElementById("problemSubmit").onclick = function (e) {
       "answer": document.getElementById("answer-"+i).value
     });
   }
-  
-  // console.log(testCasesObj);
   
   axios.post(location + "/api/postproblem", {
     admin: document.getElementById("admin-name").value,
@@ -359,6 +273,7 @@ document.getElementById("problemSubmit").onclick = function (e) {
   });
 }
 
+/* Show code from list of codes */
 function showCode(code) {
   return function() {
     Swal.fire({
@@ -377,6 +292,7 @@ function showCode(code) {
   };
 }
 
+/* Show list of submitted codes */
 function showAdminViewLists(arr) {
   var list = document.getElementById("view-list");
   list.innerHTML = ""; // clear old content
@@ -425,6 +341,7 @@ function showAdminViewLists(arr) {
   }
 }
 
+/* Handle click event to fetch list of submitted codes */
 document.getElementById("v-submit").onclick = function (e) {
   axios.post(location + "/api/view", {
     admin: document.getElementById("v-admin").value,
@@ -440,15 +357,15 @@ document.getElementById("v-submit").onclick = function (e) {
 
 document.getElementById("pg").onclick = playground;
 
+/* Exit playground */
 document.getElementById("pg-mback").onclick = function () {
   hideAll();
-  //alert();
   window.location.reload();
 }
 
+/* Main page to show, includes the code editor and problem */
 function gotoMainWindow(obj) {
   return function () {
-    // localStorage.setItem("currentProblem", JSON.stringify(obj));
     currentProblemVar = obj;
     document.getElementById("probList").style.display = "none";
     document.getElementById("main-div").style.display = "block";
@@ -457,8 +374,8 @@ function gotoMainWindow(obj) {
   };
 }
 
+/* Load or refresh problem list */
 function refreshProblemList() {
-  // var arr = JSON.parse(localStorage.getItem("problems"));
   var username = localStorage.getItem("username");
   var sessionid = localStorage.getItem("sessionid");
   axios.post(location + "/api/getproblems", {
@@ -466,11 +383,9 @@ function refreshProblemList() {
     sessionid
   }).then(function (r) {
     if (r.data.status == "success") {
-      // console.log(r.data);
       document.getElementById("longlist").innerHTML = "";
 
       for (var i = 0; i < r.data.list.length; i++) {
-        // Create container as a Bootstrap card
         var item = document.createElement("div");
         item.className = "card shadow-sm mb-3";
 
@@ -502,16 +417,7 @@ function refreshProblemList() {
   });
 }
 
-function deleteAProblem(num) {
-  return function () {
-    //var arr = JSON.parse(localStorage.getItem("problems"));
-    var arr = getProblemsList();
-    // arr.splice(num, 1);
-    // localStorage.setItem("problems", JSON.stringify(arr));
-    // refreshProblemList();
-  }
-}
-
+/* Delete all problems */ 
 document.getElementById("delete-problem-button").onclick = function (e) {
   axios.post(location + "/api/deleteproblems", {
     admin: document.getElementById("d-admin-name").value,
@@ -525,10 +431,7 @@ document.getElementById("delete-problem-button").onclick = function (e) {
   })
 }
 
-var testCasesCount = 0;
-var testCasesObj = {};
-// var currentTestCaseName = "0";
-
+/* Add test cases on creating a problem */
 document.getElementById("addTestCases").onclick = function(e) {
   var parentElem = document.getElementById("pc-items");
   var curElem = document.createElement("div");
@@ -553,7 +456,7 @@ document.getElementById("addTestCases").onclick = function(e) {
   parentElem.appendChild(curElem);
   
 }
-
+/* Hide all views */
 function hideAll() {
   document.getElementById("main-div").style.display = "none";
   document.getElementById("login").style.display = "none";
@@ -566,11 +469,13 @@ function hideAll() {
   document.getElementById("playground").style.display = "none";
 }
 
+/* Show playground */
 function playground() {
   hideAll();
   document.getElementById("playground").style.display = "block";
 }
 
+/* Show Log Out button */
 function addLogoutButton() {
   var btn = document.createElement("input");
   btn.type = "button";
@@ -592,6 +497,7 @@ function addLogoutButton() {
   // document.body.appendChild(btn);
 }
 
+/* Show submissions lists (Non-Admin) */
 function showSubmissions() {
   var elemList = document.getElementById("submitLists");
   elemList.innerHTML = ""; // clear old entries
