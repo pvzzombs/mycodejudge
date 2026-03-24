@@ -17,195 +17,13 @@
 #include <loguru.hpp>
 #include "nrp.hpp"
 
-#define OUTPUTLOCATION "/home/guest/tempbin/"
-#define FAKESYSTEMLOCATION "/mnt/sda2/fakesystem"
-#define ADMINNAME "admin"
-#define ADMINPASS "admin"
-#define FAKESYSTEMLOCATIONHOME "/home/sandbox"
+#include "includes.hpp"
 
 void allowCORS(httplib::Response &res) {
   res.set_header("Access-Control-Allow-Origin", "*");
   res.set_header("Allow", "GET, POST, HEAD, OPTIONS");
   res.set_header("Access-Control-Allow-Headers", "X-Requested-With, Content-Type, Accept, Origin, Authorization");
   res.set_header("Access-Control-Allow-Methods", "OPTIONS, GET, POST, HEAD");
-}
-
-bool compileCpp(std::string name, std::string &result) {
-  std::FILE * pipe = NULL;
-  char buffer[128];
-  std::string cmd = "g++ -std=c++11 " + name + ".cpp -o " + name + ".out 2>&1";
-
-  pipe = popen(cmd.c_str(), "r");
-  while(fgets(buffer, 128, pipe) != NULL) {
-    int i = 0;
-    while(i < 128 && buffer[i] != 0) {
-      if (buffer[i] == '\n') {
-        result += "\\n";
-      } else {
-        result += buffer[i];
-      }
-      i++;
-    }
-  }
-  pclose(pipe);
-
-  if (result.find("error") != std::string::npos) {
-    return 0;
-  }
-  return 1;
-}
-
-bool compileCppNoParsedEndline(std::string name, std::string &result) {
-  std::FILE * pipe = NULL;
-  char buffer[128];
-  std::string cmd = "g++ -std=c++11 " + name + ".cpp -o " + name + ".out 2>&1";
-
-  pipe = popen(cmd.c_str(), "r");
-  while(fgets(buffer, 128, pipe) != NULL) {
-    result += buffer;
-  }
-  pclose(pipe);
-
-  if (result.find("error") != std::string::npos) {
-    return 0;
-  }
-  return 1;
-}
-
-bool compileC(std::string name, std::string &result) {
-  std::FILE * pipe = NULL;
-  char buffer[128];
-  std::string cmd = "gcc " + name + ".c -o " + name + ".out 2>&1";
-
-  pipe = popen(cmd.c_str(), "r");
-  while(fgets(buffer, 128, pipe) != NULL) {
-    int i = 0;
-    while(i < 128 && buffer[i] != 0) {
-      if (buffer[i] == '\n') {
-        result += "\\n";
-      } else {
-        result += buffer[i];
-      }
-      i++;
-    }
-  }
-  pclose(pipe);
-
-  if (result.find("error") != std::string::npos) {
-    return 0;
-  }
-  return 1;
-}
-
-bool compileCNoParsedEndline(std::string name, std::string &result) {
-  std::FILE * pipe = NULL;
-  char buffer[128];
-  std::string cmd = "gcc " + name + ".c -o " + name + ".out 2>&1";
-
-  pipe = popen(cmd.c_str(), "r");
-  while(fgets(buffer, 128, pipe) != NULL) {
-    result += buffer;
-  }
-  pclose(pipe);
-
-  if (result.find("error") != std::string::npos) {
-    return 0;
-  }
-  return 1;
-}
-
-bool run(std::string name, std::string input, std::string &result) {
-  std::FILE * pipe = NULL;
-  char buffer[128];
-  std::ofstream inputTextFile;
-  std::string fileName = name + ".txt";
-  std::string cmd = "timeout 2s " + name + ".out < " + fileName + " 2>&1";
-
-  inputTextFile.open(fileName.c_str());
-  inputTextFile << input;
-  inputTextFile.close();
-
-  pipe = popen(cmd.c_str(), "r");
-  while(fgets(buffer, 128, pipe) != NULL) {
-    int i = 0;
-    while(i < 128 && buffer[i] != 0) {
-      if (buffer[i] == '\n') {
-        result += "\\n";
-      } else {
-        result += buffer[i];
-      }
-      i++;
-    }
-  }
-  pclose(pipe);
-  return 1;
-}
-
-bool runNoParsedEndline(std::string name, std::string input, std::string &result) {
-  std::FILE * pipe = NULL;
-  char buffer[128];
-  std::ofstream inputTextFile;
-  std::string fileName = name + ".txt";
-  std::string cmd = "timeout 2s " + name + ".out < " + fileName + " 2>&1";
-
-  inputTextFile.open(fileName.c_str());
-  inputTextFile << input;
-  inputTextFile.close();
-
-  pipe = popen(cmd.c_str(), "r");
-  while(fgets(buffer, 128, pipe) != NULL) {
-    result += buffer;
-  }
-  pclose(pipe);
-  return 1;
-}
-
-bool runChroot(std::string name, std::string input, std::string &result) {
-  std::FILE * pipe = NULL;
-  char buffer[128];
-  std::ofstream inputTextFile;
-  std::string fileNameScoped = name + ".txt";
-  std::string fileName = FAKESYSTEMLOCATION + fileNameScoped;
-  std::string cmd = "timeout 2s unshare -r chroot " FAKESYSTEMLOCATION " " + name + ".out < " + fileName + " 2>&1";
-
-  inputTextFile.open(fileName.c_str());
-  inputTextFile << input;
-  inputTextFile.close();
-
-  pipe = popen(cmd.c_str(), "r");
-  while(fgets(buffer, 128, pipe) != NULL) {
-    int i = 0;
-    while(i < 128 && buffer[i] != 0) {
-      if (buffer[i] == '\n') {
-        result += "\\n";
-      } else {
-        result += buffer[i];
-      }
-      i++;
-    }
-  }
-  pclose(pipe);
-  return 1;
-}
-
-bool runChrootNoParsedEndline(std::string name, std::string input, std::string &result) {
-  std::FILE * pipe = NULL;
-  char buffer[128];
-  std::ofstream inputTextFile;
-  std::string fileNameScoped = name + ".txt";
-  std::string fileName = FAKESYSTEMLOCATION + fileNameScoped;
-  std::string cmd = "timeout 2s unshare -r chroot " FAKESYSTEMLOCATION " " + name + ".out < " + fileName + " 2>&1";
-
-  inputTextFile.open(fileName.c_str());
-  inputTextFile << input;
-  inputTextFile.close();
-
-  pipe = popen(cmd.c_str(), "r");
-  while(fgets(buffer, 128, pipe) != NULL) {
-    result += buffer;
-  }
-  pclose(pipe);
-  return 1;
 }
 
 std::string generateFileName() {
@@ -288,16 +106,6 @@ bool isAnswersMatch(std::string a, std::string b) {
     arr2.pop_back();
   }
 
-  // for (auto &e: arr1) {
-  //   std::cout << e << ", ";
-  // }
-  // std::cout << std::endl;
-
-  // for (auto &e: arr2) {
-  //   std::cout << e << ", ";
-  // }
-  // std::cout << std::endl;
-
   if (arr1.size() != arr2.size()) {
     return false;
   }
@@ -309,35 +117,6 @@ bool isAnswersMatch(std::string a, std::string b) {
   }
 
   return true;
-}
-
-std::string parseStringWithEscapes(std::string str) {
-  std::string out;
-  int i = 0;
-  while(i < str.size()) {
-    if (str.at(i) == '\\') {
-      i++;
-      if (i < str.size()) {
-        switch (str.at(i)) {
-          case 'n':
-          out += "\n";
-          break;
-          case 't':
-          out += "\t";
-          break;
-          case '\\':
-          out += "\\";
-          break;
-        }
-      } else {
-        break;
-      }
-    } else {
-      out += str.at(i);
-    }
-    i++;
-  }
-  return out;
 }
 
 bool isFileExists(std::string name) {
@@ -464,60 +243,6 @@ int main(int argc, char * argv[]) {
     LOG_F(INFO, "Get submission success!");
   });
 
-  svr.Options("/api/post", [](const httplib::Request &req, httplib::Response &res){
-    allowCORS(res);
-  });
-
-  svr.Post("/api/post", [](const httplib::Request &req, httplib::Response &res){
-    allowCORS(res);
-    nlohmann::json j = nlohmann::json::parse(req.body);
-    std::string program = j["post"];
-    std::string inputText = j["input"];
-    std::string lang = j["lang"];
-    std::string compileResult = "";
-    std::string runResult = "";
-    std::string name = OUTPUTLOCATION + generateFileName();
-    std::string ext;
-    std::string fileName = name;
-    nlohmann::json outjson;
-
-    if (lang == "cpp") {
-      ext = ".cpp";
-    } else if (lang == "c") {
-      ext = ".c";
-    }
-
-    fileName += ext;
-    // std::cout << "Name of source file is " << fileName << std::endl;
-
-    while(isFileExists(fileName)) {
-      name = OUTPUTLOCATION + generateFileName();
-      fileName = name + ext;
-      // std::cout << "[Regen] Name of source file is " << fileName << std::endl;
-    }
-
-    std::ofstream cppFile;
-    cppFile.open(fileName);
-    cppFile << program;
-    cppFile.close();
-    //compile
-    int r = 0;
-    if (lang == "cpp") {
-      r = compileCppNoParsedEndline(name, compileResult);
-    } else if (lang == "c") {
-      r = compileCNoParsedEndline(name, compileResult);
-    }
-    if (r) {
-      runNoParsedEndline(name, inputText, runResult);
-    } 
-
-    outjson["errors"] = compileResult;
-    outjson["result"] = runResult;
-
-    res.set_content(outjson.dump(), "application/json");
-    LOG_F(INFO, "Done!");
-  });
-
   svr.Options("/api/postsafe", [](const httplib::Request &req, httplib::Response &res){
     allowCORS(res);
   });
@@ -556,10 +281,10 @@ int main(int argc, char * argv[]) {
       // std::cout << "[Regen] Name of source file is " << fileName << std::endl;
     }
 
-    std::ofstream cppFile;
-    cppFile.open(fileName);
-    cppFile << program;
-    cppFile.close();
+    std::ofstream programFile;
+    programFile.open(fileName);
+    programFile << program;
+    programFile.close();
     //compile
     int r = 0;
     // if (lang == "cpp") {

@@ -10,8 +10,7 @@
 
 #include <loguru.hpp>
 
-#define OUTPUT_FILE "/mnt/sda2/fakesystem/home/sandbox/rout.txt"
-#define INPUT_FILE "/mnt/sda2/fakesystem/home/sandbox/rin.txt"
+#include "includes.hpp"
 
 std::string generateRandomHeader() {
   std::string name = "";

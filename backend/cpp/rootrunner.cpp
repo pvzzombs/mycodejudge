@@ -8,10 +8,7 @@
 
 #include <loguru.hpp>
 
-#define OUTPUT_FILE "/mnt/sda2/fakesystem/home/sandbox/rout.txt"
-#define INPUT_FILE "/mnt/sda2/fakesystem/home/sandbox/rin.txt"
-#define FAKESYSTEMLOCATION "/mnt/sda2/fakesystem"
-#define FAKESYSTEMUSER "sandbox"
+#include "includes.hpp"
 
 bool isAlphaNumeric(char c) {
   return (c >= '0' && c <= '9') || (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z');
