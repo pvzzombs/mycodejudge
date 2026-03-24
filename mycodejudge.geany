@@ -28,13 +28,14 @@ long_line_behaviour=1
 long_line_column=72
 
 [files]
-current_page=-1
+current_page=0
+FILE_NAME_0=854;Markdown;0;EUTF-8;0;1;0;%2Fhome%2Fguest%2FDocuments%2Fmycodejudge%2FREADME.md;0;2
 
 [VTE]
 last_dir=/home/guest
 
 [prjorg]
-expanded_paths=/home/guest/Documents/mycodejudge/backend/cpp;/home/guest/Documents/mycodejudge/frontend;
+expanded_paths=/home/guest/Documents/mycodejudge;
 source_patterns=*.c;*.C;*.cpp;*.cxx;*.c++;*.cc;*.m;
 header_patterns=*.h;*.H;*.hpp;*.hxx;*.h++;*.hh;
 ignored_dirs_patterns=.*;CVS;
