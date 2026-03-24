@@ -28,15 +28,13 @@ long_line_behaviour=1
 long_line_column=72
 
 [files]
-current_page=0
-FILE_NAME_0=14918;Javascript;0;EUTF-8;0;1;0;%2Fhome%2Fguest%2FDocuments%2Fmycodejudge%2Ffrontend%2Fmycodejudge-frontend%2Fsrc%2Fmain.js;0;2
-FILE_NAME_1=9935;HTML;0;EUTF-8;0;1;0;%2Fhome%2Fguest%2FDocuments%2Fmycodejudge%2Ffrontend%2Fmycodejudge-frontend%2Findex.html;0;2
+current_page=-1
 
 [VTE]
 last_dir=/home/guest
 
 [prjorg]
-expanded_paths=/home/guest/Documents/mycodejudge/frontend/mycodejudge-frontend/src;
+expanded_paths=/home/guest/Documents/mycodejudge/backend/cpp;/home/guest/Documents/mycodejudge/frontend;
 source_patterns=*.c;*.C;*.cpp;*.cxx;*.c++;*.cc;*.m;
 header_patterns=*.h;*.H;*.hpp;*.hxx;*.h++;*.hh;
 ignored_dirs_patterns=.*;CVS;
