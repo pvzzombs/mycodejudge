@@ -7,8 +7,10 @@
 #include <unistd.h>
 
 #include <loguru.hpp>
+#include <ThreadPool.h>
 
 #include "includes.hpp"
+#include "utils.hpp"
 
 bool isAlphaNumeric(char c) {
   return (c >= '0' && c <= '9') || (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z');
@@ -115,15 +117,15 @@ void wakeUpJava() {
 void compileSourceCode(std::string fileName) {
   //detect code type:
   std::string baseName;
+  char buffer_cmd[1024];
    if (fileName.find(".cpp") != std::string::npos) {
     baseName = fileName.substr(0, fileName.size() - 4);
-    // std::cout << baseName << std::endl;
-    std::string cmd = "g++ " + baseName + ".cpp -o " + baseName + ".out 2>&1";
+    COMPILE_COMMAND_EXEC_CPP;
     std::ofstream warnings;
     std::FILE * pipe = NULL;
     char buffer[128];
     warnings.open(baseName + ".w");
-    pipe = popen(cmd.c_str(), "r");
+    pipe = popen(buffer_cmd, "r");
     while(fgets(buffer, 128, pipe) != NULL) {
       warnings << buffer;
     }
@@ -131,13 +133,12 @@ void compileSourceCode(std::string fileName) {
     warnings.close();
   } else if (fileName.find(".c") != std::string::npos) {
     baseName = fileName.substr(0, fileName.size() - 2);
-    // std::cout << baseName << std::endl;
-    std::string cmd = "gcc " + baseName + ".c -o " + baseName + ".out 2>&1";
+    COMPILE_COMMAND_EXEC_C;
     std::ofstream warnings;
     std::FILE * pipe = NULL;
     char buffer[128];
     warnings.open(baseName + ".w");
-    pipe = popen(cmd.c_str(), "r");
+    pipe = popen(buffer_cmd, "r");
     while(fgets(buffer, 128, pipe) != NULL) {
       warnings << buffer;
     }
@@ -145,15 +146,13 @@ void compileSourceCode(std::string fileName) {
     warnings.close();
   } else if (fileName.find(".java") != std::string::npos) {
     baseName = fileName.substr(0, fileName.size() - 5);
-    std::string cmd = "export PATH=$PATH:/opt/jdk/bin; javac " + baseName + ".java 2>&1";
-    // std::cout << "Hello" << std::endl;
+    COMPILE_COMMAND_EXEC_JAVA;
     replaceJavaClassName(fileName);
-    // std::cout << "Hey" << std::endl;
     std::ofstream warnings;
     std::FILE * pipe = NULL;
     char buffer[128];
     warnings.open(baseName + ".w");
-    pipe = popen(cmd.c_str(), "r");
+    pipe = popen(buffer_cmd, "r");
     while(fgets(buffer, 128, pipe) != NULL) {
       warnings << buffer;
     }
@@ -164,15 +163,13 @@ void compileSourceCode(std::string fileName) {
 
 void runExecutable(std::string fileName) {
   std::string baseName;
+  char buffer_cmd[1024];
   if (fileName.find(".cpp") != std::string::npos) {
     baseName = fileName.substr(0, fileName.size() - 4);
-    // std::cout << baseName << std::endl;
     std::string fakesystempath = FAKESYSTEMLOCATION;
     std::string name = baseName.substr(fakesystempath.size(), baseName.size());
-    // std::cout << "name: " << name << std::endl;
-    // bash -c 'echo $$ > /sys/fs/cgroup/guest/cgroup.procs; /home/guest/a.out'
-    std::string cmd = "timeout 2s sh -c 'echo $$ > /sys/fs/cgroup/ccpplang/cgroup.procs; chroot " FAKESYSTEMLOCATION " /bin/su - " FAKESYSTEMUSER " -c '\\''" + name + ".out'\\'' < " + baseName + ".txt 2>&1'";
-    std::cout << "command is " << cmd << std::endl;
+    RUN_COMMAND_EXEC_CPP;
+    std::cout << "command is " << buffer_cmd << std::endl;
     std::FILE * pipe = NULL;
     char buffer[128];
 
@@ -180,7 +177,7 @@ void runExecutable(std::string fileName) {
 
     file.open(baseName + ".result");
 
-    pipe = popen(cmd.c_str(), "r");
+    pipe = popen(buffer_cmd, "r");
     while(fgets(buffer, 128, pipe) != NULL) {
       file << buffer;
     }
@@ -191,13 +188,10 @@ void runExecutable(std::string fileName) {
     file.close();
   } else if (fileName.find(".c") != std::string::npos) {
     baseName = fileName.substr(0, fileName.size() - 2);
-    // std::cout << baseName << std::endl;
     std::string fakesystempath = FAKESYSTEMLOCATION;
     std::string name = baseName.substr(fakesystempath.size(), baseName.size());
-    // std::cout << "name: " << name << std::endl;
-    // bash -c 'echo $$ > /sys/fs/cgroup/guest/cgroup.procs; /home/guest/a.out'
-    std::string cmd = "timeout 2s sh -c 'echo $$ > /sys/fs/cgroup/ccpplang/cgroup.procs; chroot " FAKESYSTEMLOCATION " /bin/su - " FAKESYSTEMUSER" -c '\\''" + name + ".out'\\'' < " + baseName + ".txt 2>&1'";
-    std::cout << "command is " << cmd << std::endl;
+    RUN_COMMAND_EXEC_C;
+    std::cout << "command is " << buffer_cmd << std::endl;
     std::FILE * pipe = NULL;
     char buffer[128];
 
@@ -205,7 +199,7 @@ void runExecutable(std::string fileName) {
 
     file.open(baseName + ".result");
 
-    pipe = popen(cmd.c_str(), "r");
+    pipe = popen(buffer_cmd, "r");
     while(fgets(buffer, 128, pipe) != NULL) {
       file << buffer;
     }
@@ -216,14 +210,11 @@ void runExecutable(std::string fileName) {
     file.close();
   } else if (fileName.find(".java") != std::string::npos) {
     baseName = fileName.substr(0, fileName.size() - 5);
-    // std::cout << baseName << std::endl;
     std::string fakesystempath = FAKESYSTEMLOCATION;
     std::string name = baseName.substr(fakesystempath.size(), baseName.size());
     std::string baseNameNoExtension = extractBaseName(fileName);
-    // std::cout << "name: " << name << std::endl;
-    // bash -c 'echo $$ > /sys/fs/cgroup/guest/cgroup.procs; /home/guest/a.out'
-    std::string cmd = "timeout 2s sh -c 'echo $$ > /sys/fs/cgroup/javalang/cgroup.procs; chroot " FAKESYSTEMLOCATION " /bin/su - " FAKESYSTEMUSER " -c '\\''java -Xmx32m -Xms1m -Xss256k " + baseNameNoExtension + "'\\'' < " + baseName + ".txt 2>&1'";
-    std::cout << "command is " << cmd << std::endl;
+    RUN_COMMAND_EXEC_JAVA;
+    std::cout << "command is " << buffer_cmd << std::endl;
     std::FILE * pipe = NULL;
     char buffer[128];
 
@@ -233,7 +224,7 @@ void runExecutable(std::string fileName) {
 
     file.open(baseName + ".result");
 
-    pipe = popen(cmd.c_str(), "r");
+    pipe = popen(buffer_cmd, "r");
     while(fgets(buffer, 128, pipe) != NULL) {
       file << buffer;
     }
@@ -250,6 +241,7 @@ int main(int argc, char * argv[]) {
   std::vector<std::string> fileNames;
   std::atomic<bool> quit;
   uid_t euid = geteuid();
+  ThreadPool pool(4);
 
   quit.store(false);
 
@@ -296,8 +288,6 @@ int main(int argc, char * argv[]) {
       if (in.is_open()) {
         std::getline(in, l);
         if (l != headerStub) {
-          // file changes, not appended
-          // continue
           in.seekg(in.tellg());
           headerStub = l;
         } else {
@@ -310,16 +300,16 @@ int main(int argc, char * argv[]) {
         }
 
         for (int i = 0; i < fileNames.size(); i++) {
-          compileSourceCode(fileNames.at(i));
-          runExecutable(fileNames.at(i));
+          std::string currentFileName = fileNames.at(i);
+          pool.enqueue([currentFileName]() {
+            compileSourceCode(currentFileName);
+            runExecutable(currentFileName);
+          });
         }
 
         fileNames.clear();
       }
       in.close();
-
-      // out.open(INPUT_FILE);
-      // out.close();
     }
   });
 
