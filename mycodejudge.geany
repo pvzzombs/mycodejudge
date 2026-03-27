@@ -34,7 +34,7 @@ current_page=-1
 last_dir=/home/guest
 
 [prjorg]
-expanded_paths=/home/guest/Documents/mycodejudge/backend/cpp/include;
+expanded_paths=/home/guest/Documents/mycodejudge/backend/cpp/include;/home/guest/Documents/mycodejudge/frontend;
 source_patterns=*.c;*.C;*.cpp;*.cxx;*.c++;*.cc;*.m;
 header_patterns=*.h;*.H;*.hpp;*.hxx;*.h++;*.hh;
 ignored_dirs_patterns=.*;CVS;
