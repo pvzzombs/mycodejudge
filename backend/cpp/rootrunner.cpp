@@ -119,6 +119,7 @@ void compileSourceCode(std::string fileName) {
   std::string baseName;
   char buffer_cmd[1024];
    if (fileName.find(".cpp") != std::string::npos) {
+    #ifndef _WIN32
     baseName = fileName.substr(0, fileName.size() - 4);
     COMPILE_COMMAND_EXEC_CPP;
     std::ofstream warnings;
@@ -131,7 +132,9 @@ void compileSourceCode(std::string fileName) {
     }
     pclose(pipe);
     warnings.close();
+    #endif
   } else if (fileName.find(".c") != std::string::npos) {
+    #ifndef _WIN32
     baseName = fileName.substr(0, fileName.size() - 2);
     COMPILE_COMMAND_EXEC_C;
     std::ofstream warnings;
@@ -144,7 +147,9 @@ void compileSourceCode(std::string fileName) {
     }
     pclose(pipe);
     warnings.close();
+    #endif
   } else if (fileName.find(".java") != std::string::npos) {
+    #ifndef _WIN32
     baseName = fileName.substr(0, fileName.size() - 5);
     COMPILE_COMMAND_EXEC_JAVA;
     replaceJavaClassName(fileName);
@@ -158,6 +163,7 @@ void compileSourceCode(std::string fileName) {
     }
     pclose(pipe);
     warnings.close();
+    #endif
   }
 }
 
@@ -165,6 +171,7 @@ void runExecutable(std::string fileName) {
   std::string baseName;
   char buffer_cmd[1024];
   if (fileName.find(".cpp") != std::string::npos) {
+    #ifndef _WIN32
     baseName = fileName.substr(0, fileName.size() - 4);
     std::string fakesystempath = FAKESYSTEMLOCATION;
     std::string name = baseName.substr(fakesystempath.size(), baseName.size());
@@ -186,7 +193,9 @@ void runExecutable(std::string fileName) {
 
     file.open(baseName + ".done");
     file.close();
+    #endif
   } else if (fileName.find(".c") != std::string::npos) {
+    #ifndef _WIN32
     baseName = fileName.substr(0, fileName.size() - 2);
     std::string fakesystempath = FAKESYSTEMLOCATION;
     std::string name = baseName.substr(fakesystempath.size(), baseName.size());
@@ -208,7 +217,9 @@ void runExecutable(std::string fileName) {
 
     file.open(baseName + ".done");
     file.close();
+    #endif
   } else if (fileName.find(".java") != std::string::npos) {
+    #ifndef _WIN32
     baseName = fileName.substr(0, fileName.size() - 5);
     std::string fakesystempath = FAKESYSTEMLOCATION;
     std::string name = baseName.substr(fakesystempath.size(), baseName.size());
@@ -233,6 +244,7 @@ void runExecutable(std::string fileName) {
 
     file.open(baseName + ".done");
     file.close();
+    #endif
   }
 }
 

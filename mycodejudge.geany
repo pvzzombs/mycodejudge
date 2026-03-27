@@ -28,11 +28,7 @@ long_line_behaviour=1
 long_line_column=72
 
 [files]
-current_page=3
-FILE_NAME_0=1583;C++;0;EUTF-8;0;1;0;%2Fhome%2Fguest%2FDocuments%2Fmycodejudge%2Fbackend%2Fcpp%2Futils.hpp;0;2
-FILE_NAME_1=2571;C++;0;EUTF-8;0;1;0;%2Fhome%2Fguest%2FDocuments%2Fmycodejudge%2Fbackend%2Fcpp%2Frootrunner.cpp;0;2
-FILE_NAME_2=7241;C++;0;EUTF-8;0;1;0;%2Fhome%2Fguest%2FDocuments%2Fmycodejudge%2Fbackend%2Fcpp%2Fmain.cpp;0;2
-FILE_NAME_3=0;C++;0;EUTF-8;0;1;0;%2Fhome%2Fguest%2FDocuments%2Fmycodejudge%2Fbackend%2Fcpp%2Fincludes.hpp;0;2
+current_page=-1
 
 [VTE]
 last_dir=/home/guest
