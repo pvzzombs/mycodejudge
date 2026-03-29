@@ -53,7 +53,9 @@ var langjavaelm = document.getElementsByClassName("langjava");
 /* Run button from problem page */
 document.getElementById("run").onclick = function () {
   Swal.fire({
-    title: "Please wait..."
+    title: "Please wait...",
+    showConfirmButton: false,
+    showCancelButton: false
   })
   axios.post(location + "/api/postsafe", {
     post: editor.getValue(),
@@ -85,7 +87,9 @@ document.getElementById("run").onclick = function () {
 /* Run button from playground*/
 document.getElementById("pg-run").onclick = function () {
   Swal.fire({
-    title: "Please wait..."
+    title: "Please wait...",
+    showConfirmButton: false,
+    showCancelButton: false
   })
   axios.post(location + "/api/postsafe", {
     post: pgEditor.getValue(),
@@ -119,7 +123,9 @@ document.getElementById("solve").onclick = function (e) {
   var item = currentProblemVar;
   currentProblemSolved = false;
   Swal.fire({
-    text: "Please wait..."
+    text: "Please wait...",
+    showConfirmButton: false,
+    showCancelButton: false
   });
   axios.post(location + "/api/submitcheck", {
     username: localStorage.getItem("username"),
