@@ -210,6 +210,10 @@ for (var i = 0; i < langcelm.length; i++) {
       text: "C"
     });
     editor.session.setMode("ace/mode/c_cpp");
+    var titles = document.getElementsByClassName("code-editor-title");
+    for (var j = 0; j < titles.length; j++) {
+      titles[j].innerText = "C Code Editor";
+    }
   };
 }
 
@@ -221,6 +225,10 @@ for (var i = 0; i < langcppelm.length; i++) {
       text: "C++"
     });
     editor.session.setMode("ace/mode/c_cpp");
+    var titles = document.getElementsByClassName("code-editor-title");
+    for (var j = 0; j < titles.length; j++) {
+      titles[j].innerText = "C++ Code Editor";
+    }
   }
 }
 
@@ -232,6 +240,10 @@ for (var i = 0; i < langjavaelm.length; i++) {
       text: "Java"
     });
     editor.session.setMode("ace/mode/java");
+    var titles = document.getElementsByClassName("code-editor-title");
+    for (var j = 0; j < titles.length; j++) {
+      titles[j].innerText = "Java Code Editor";
+    }
   }
 }
 
@@ -473,6 +485,10 @@ function hideAll() {
 function playground() {
   hideAll();
   document.getElementById("playground").style.display = "block";
+  var titles = document.getElementsByClassName("code-editor-title");
+  for (var j = 0; j < titles.length; j++) {
+    titles[j].innerText = "C Code Editor";
+  }
 }
 
 /* Show Log Out button */
@@ -542,6 +558,10 @@ router.on("/", function () {
   // Entry point
   if (localStorage.getItem("sessionid") != null) {
     document.getElementById("probList").style.display = "block";
+    var titles = document.getElementsByClassName("code-editor-title");
+    for (var j = 0; j < titles.length; j++) {
+      titles[j].innerText = "C Code Editor";
+    }
     refreshProblemList();
     addLogoutButton();
   } else {
