@@ -1,0 +1,5 @@
+FROM docker.io/library/gcc:14
+
+WORKDIR /workspace
+
+CMD ["/bin/sh"]

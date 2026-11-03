@@ -20,7 +20,28 @@
 - C
 - C++
 - Java
-## Steps
+## Steps (New)
+- This new guide uses Podman, if not using Podman then scroll below to the bottom steps labeled as deprecated
+### Macro definition preparation
+1. Go to the `backend/cpp` folder
+2. Edit `includes.hpp`:
+- Edit `FAKESYSTEMLOCATION`, enter the absolute path, example: `/mnt/sda2/fakeroot`
+- Edit `FAKESYSTEMLOCATIONHOME`, enter the absolute path starting from `/`, example: `/home/sandbox`
+- Edit `ADMINNAME` and `ADMINPASS`, enter your admin name and admin password as a C string
+- Edit `OUTPUTLOCATION`, this is where should the sqlite database should be stored
+- Edit `OUTPUT_FILE` and `INPUT_FILE`, this is used for backend communication
+### Preparing the database
+3. Execute `prepare.sql` to your sqlite database located at `OUTPUTLOCATION`, this prepares the tables for you
+- Note: Ensure the name of the sqlite database is `test.db`
+### Preparing the backend image (for containers)
+4. Inside `backend/cpp` run: `podman build -t mycodejudge .`
+### Preparing the backend
+5. Compile the cpp files by running `compile.sh`
+6. Run `a.out` and `podmanrootrunner.out` (No root privilege required)
+### Preparing the frontend
+7. Ensure the frontend is running
+
+## Steps (Deprecated)
 ### Preparing for steps
 1. Go to the `backend` folder
 ### Preparing the database
