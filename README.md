@@ -6,6 +6,7 @@ A lightweight (offline) code judge system
 
 - Offline code judge system, does not need internet, web dependencies
   are bundled for offline use after installation
+- Execution of (unsafe) code are handled using Podman (**NEW!**)
 - Execution of (unsafe) code are handled using chroot and cgroup2
 - Supports checking of code using (multiple) custom testcase/s
 - Currently only supports: `C`, `C++`, and `Java`
