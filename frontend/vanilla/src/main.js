@@ -57,7 +57,7 @@ document.getElementById("run").onclick = function () {
     showConfirmButton: false,
     showCancelButton: false
   })
-  axios.post(location + "/api/postsafe", {
+  axios.post(location + "/api/execcode", {
     post: editor.getValue(),
     input: document.getElementById("text-input").value,
     lang: lang
@@ -91,7 +91,7 @@ document.getElementById("pg-run").onclick = function () {
     showConfirmButton: false,
     showCancelButton: false
   })
-  axios.post(location + "/api/postsafe", {
+  axios.post(location + "/api/execcode", {
     post: pgEditor.getValue(),
     input: document.getElementById("pg-text-input").value,
     lang: lang

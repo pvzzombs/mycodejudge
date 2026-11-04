@@ -8,6 +8,7 @@
 #include <thread>
 #include <chrono>
 #include <sstream>
+#include <stdexcept>
 #include <dirent.h>
 
 #include <sodium.h>
@@ -46,7 +47,7 @@ std::string hash_password(std::string password) {
   // password hash len
   char passwordHash[crypto_pwhash_STRBYTES];
   if (crypto_pwhash_str(passwordHash, password.c_str(), password.size(), crypto_pwhash_OPSLIMIT_INTERACTIVE, crypto_pwhash_MEMLIMIT_INTERACTIVE) != 0) {
-    throw ;
+    throw std::runtime_error("Hashing Password Failed!");
   }
   return std::string(passwordHash);
 }
@@ -243,11 +244,11 @@ int main(int argc, char * argv[]) {
     LOG_F(INFO, "Get submission success!");
   });
 
-  svr.Options("/api/postsafe", [](const httplib::Request &req, httplib::Response &res){
+  svr.Options("/api/execcode", [](const httplib::Request &req, httplib::Response &res){
     allowCORS(res);
   });
 
-  svr.Post("/api/postsafe", [&](const httplib::Request &req, httplib::Response &res){
+  svr.Post("/api/execcode", [&](const httplib::Request &req, httplib::Response &res){
     allowCORS(res);
     nlohmann::json j = nlohmann::json::parse(req.body);
     std::string program = j["post"];
@@ -259,6 +260,7 @@ int main(int argc, char * argv[]) {
     std::string name = FAKESYSTEMLOCATION + scopedname;
     std::string ext;
     std::string fileName = name;
+    int retries = 0;
 
     nlohmann::json outjson;
 
@@ -312,7 +314,7 @@ int main(int argc, char * argv[]) {
 
     // std::cout << "Before Done??????" << std::endl;
 
-    while (!nrp.isAvailable(name)) {
+    while (!nrp.isAvailable(name) && retries != 10 * 60) {
       std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
 
@@ -368,6 +370,7 @@ int main(int argc, char * argv[]) {
     std::string scopedname = FAKESYSTEMLOCATIONHOME "/" + generateFileName();
     std::string ext;
     std::string name = FAKESYSTEMLOCATION + scopedname;
+    int retries = 0;
     
     std::string fileName = name;
 
@@ -430,7 +433,7 @@ int main(int argc, char * argv[]) {
               nrp.cv.notify_one();
             }
 
-            while (!nrp.isAvailable(name)) {
+            while (!nrp.isAvailable(name) && retries != 10 * 60) {
               std::this_thread::sleep_for(std::chrono::milliseconds(100));
             }
 
@@ -492,7 +495,6 @@ int main(int argc, char * argv[]) {
           LOG_F(INFO, "Solution accepted!");
           return ;
         }
-        break;
       }
     }
 
@@ -674,8 +676,7 @@ int main(int argc, char * argv[]) {
   std::thread t1([&]() {
     std::string q;
     do {
-      std::getline(std::cin, q);
-      if (q.size() > 0 && q.at(0) == 'q') {
+      if (std::getline(std::cin, q) && q.size() > 0 && q.at(0) == 'q') {
         GOEXIT.store(true);
         {
           std::unique_lock<std::mutex> lck(nrp.arrMutex);

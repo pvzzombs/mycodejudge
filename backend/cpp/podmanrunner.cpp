@@ -276,8 +276,7 @@ int main(int argc, char * argv[]) {
     bool shouldExit = false;
     do {
       std::string s;
-      std::getline(std::cin, s);
-      if (s.size() > 0 && s.at(0) == 'q') {
+      if (std::getline(std::cin, s) && s.size() > 0 && s.at(0) == 'q') {
         shouldExit = true;
         quit.store(true);
       }
