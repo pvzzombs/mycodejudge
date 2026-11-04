@@ -1,4 +1,6 @@
-FROM docker.io/library/gcc:14
+FROM docker.io/library/alpine:latest
+
+RUN apk add --no-cache build-base openjdk17 coreutils
 
 WORKDIR /workspace
 

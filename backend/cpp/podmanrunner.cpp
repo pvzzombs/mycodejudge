@@ -230,6 +230,7 @@ void runExecutable(std::string fileName) {
     std::string fakesystempath = FAKESYSTEMLOCATION;
     std::string name = baseName.substr(fakesystempath.size(), baseName.size());
     std::string baseNameNoExtension = extractBaseName(fileName);
+    name = extractBaseName(name);
     RUN_COMMAND_EXEC_JAVA;
     std::cout << "command is " << buffer_cmd << std::endl;
     std::FILE * pipe = NULL;
@@ -237,7 +238,7 @@ void runExecutable(std::string fileName) {
 
     std::ofstream file;
 
-    wakeUpJava();
+    // wakeUpJava();
 
     file.open(baseName + ".result");
 
