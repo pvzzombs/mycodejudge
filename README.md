@@ -4,6 +4,7 @@ A lightweight (offline) code judge system
 
 ## Features:
 
+- Aims to be simple and easy to use
 - Offline code judge system, does not need internet, web dependencies
   are bundled for offline use after installation
 - Execution of (unsafe) code are handled using Podman (**NEW!**)

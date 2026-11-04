@@ -316,6 +316,7 @@ int main(int argc, char * argv[]) {
 
     while (!nrp.isAvailable(name) && retries != 10 * 60) {
       std::this_thread::sleep_for(std::chrono::milliseconds(100));
+      retries++;
     }
 
     // std::cout << "Done??????" << std::endl;
@@ -435,6 +436,7 @@ int main(int argc, char * argv[]) {
 
             while (!nrp.isAvailable(name) && retries != 10 * 60) {
               std::this_thread::sleep_for(std::chrono::milliseconds(100));
+              retries++;
             }
 
             std::string line;
