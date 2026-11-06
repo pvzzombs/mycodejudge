@@ -5,5 +5,5 @@
 #define FAKESYSTEMLOCATIONHOME "/home/sandbox"
 #define FAKESYSTEMUSER "sandbox"
 
-#define OUTPUT_FILE "/mnt/sda2/fakesystem/home/sandbox/rout.txt"
-#define INPUT_FILE "/mnt/sda2/fakesystem/home/sandbox/rin.txt"
+#define OUTPUT_FILE "/mnt/sda2/guest/rout.txt"
+#define INPUT_FILE "/mnt/sda2/guest/rin.txt"

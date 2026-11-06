@@ -698,6 +698,8 @@ int main(int argc, char * argv[]) {
 
   std::thread t3([&]() {
     nrp.wait();
+    std::remove(INPUT_FILE);
+    LOG_F(INFO, "Deleted Input file!");
   });
 
   std::thread t4([&]() {

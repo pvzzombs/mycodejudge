@@ -181,7 +181,7 @@ void runExecutable(std::string fileName) {
     std::string name = baseName.substr(fakesystempath.size(), baseName.size());
     name = extractBaseName(name);
     RUN_COMMAND_EXEC_CPP;
-    std::cout << "command is " << buffer_cmd << std::endl;
+    LOG_F(INFO, "Command is %s", buffer_cmd);
     std::FILE * pipe = NULL;
     char buffer[128];
 
@@ -206,7 +206,7 @@ void runExecutable(std::string fileName) {
     std::string name = baseName.substr(fakesystempath.size(), baseName.size());
     name = extractBaseName(name);
     RUN_COMMAND_EXEC_C;
-    std::cout << "command is " << buffer_cmd << std::endl;
+    LOG_F(INFO, "Command is %s", buffer_cmd);
     std::FILE * pipe = NULL;
     char buffer[128];
 
@@ -232,7 +232,7 @@ void runExecutable(std::string fileName) {
     std::string baseNameNoExtension = extractBaseName(fileName);
     name = extractBaseName(name);
     RUN_COMMAND_EXEC_JAVA;
-    std::cout << "command is " << buffer_cmd << std::endl;
+    LOG_F(INFO, "Command is %s", buffer_cmd);
     std::FILE * pipe = NULL;
     char buffer[128];
 
@@ -333,5 +333,9 @@ int main(int argc, char * argv[]) {
 
   t1.join();
   t2.join();
+
+  std::remove(OUTPUT_FILE);
+  LOG_F(INFO, "Deleted Output file!");
+
   return 0;
 }
